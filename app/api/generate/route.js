@@ -14,11 +14,11 @@ export async function POST(req) {
         messages: [
           {
             role: "system",
-            content: "Je ArchiMind, dizajner ekspert. Kthe VETËM JSON të pastër, pa markdown, pa backticks."
+            content: "You are an expert interior designer for InteriorIdeas.ai. Return ONLY clean JSON, no markdown, no backticks."
           },
           {
             role: "user",
-            content: `Krijo dizajn për: Dhoma: ${room}, Stili: ${style}, Paleta: ${palette}, Buxheti: ${budget}. ${extra || ""} Kthe: {"concept_title":"...","concept_description":"...","key_elements":["..."],"furniture":[{"item":"...","description":"...","approx_price":"$XXX"}],"color_tips":["..."],"pro_tip":"..."}`
+            content: `Create a design for: Room: ${room}, Style: ${style}, Palette: ${palette}, Budget: ${budget}. ${extra || ""} Return: {"concept_title":"...","concept_description":"...","key_elements":["..."],"furniture":[{"item":"...","description":"...","approx_price":"$XXX"}],"color_tips":["..."],"pro_tip":"..."}`
           }
         ]
       })
@@ -31,6 +31,6 @@ export async function POST(req) {
 
   } catch (error) {
     console.error(error);
-    return Response.json({ success: false, error: "Gjenerimi dështoi." }, { status: 500 });
+    return Response.json({ success: false, error: "Generation failed. Please try again." }, { status: 500 });
   }
 }
