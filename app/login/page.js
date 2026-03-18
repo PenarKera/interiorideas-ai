@@ -60,7 +60,7 @@ export default function LoginPage() {
         </div>
         {error && <div style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: 8, padding: "10px 14px", color: "#FCA5A5", fontSize: 13, marginBottom: 16 }}>❌ {error}</div>}
         <button onClick={handleSubmit} disabled={loading} style={{ width: "100%", padding: 14, background: "linear-gradient(135deg, #7B4FFF, #C084FC)", border: "none", borderRadius: 10, color: "#fff", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
-          {loading ? "Duke u ngarkuar..." : isSignup ? "✦ Regjistrohu" : "✦ Hyr"}
+          {loading ? "Duke u ngarkuar..." : isSignup ? " Regjistrohu" : "Hyr"}
         </button>
         <div style={{ textAlign: "center", marginTop: 20, fontSize: 13, color: "#6B6B8A" }}>
           {isSignup ? "Ke llogari?" : "Nuk ke llogari?"}{" "}
