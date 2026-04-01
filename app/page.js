@@ -72,27 +72,63 @@ export default function Home() {
   };
 
   const handleSubmit = async () => {
-    setLoading(true); setError(""); setResult(null);
+    setLoading(true); 
+    setError(""); 
+    setResult(null);
+    // Kthejmë hapat në 1 nëse po bëjmë gjenerim të ri
+    setActiveStep(1); 
+
     try {
-      const response = await fetch("/api/generate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) });
+      const response = await fetch("/api/generate", { 
+        method: "POST", 
+        headers: { "Content-Type": "application/json" }, 
+        body: JSON.stringify(form) 
+      });
+      
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Generation failed.");
+      
       setResult(data.design);
-      setTimeout(() => setActiveStep(2), 100);
-    } catch (err) { setError(err.message); }
-    finally { setLoading(false); }
+      // Kur vjen rezultati nga AI, ndizet rrethi i dytë "Processing"
+      setActiveStep(2); 
+      
+    } catch (err) { 
+      setError(err.message); 
+    } finally { 
+      setLoading(false); 
+    }
   };
 
   const handleSave = async () => {
     if (!result || !user) return;
     setSaving(true);
+    
     const { error } = await supabase.from("designs").insert({
-      user_id: user.id, room: form.room, style: form.style, palette: form.palette, budget: form.budget,
-      concept_title: result.concept_title, concept_description: result.concept_description,
-      key_elements: result.key_elements, furniture: result.furniture, color_tips: result.color_tips, pro_tip: result.pro_tip,
+      user_id: user.id, 
+      room: form.room, 
+      style: form.style, 
+      palette: form.palette, 
+      budget: form.budget,
+      concept_title: result.concept_title, 
+      concept_description: result.concept_description,
+      key_elements: result.key_elements, 
+      furniture: result.furniture, 
+      color_tips: result.color_tips, 
+      pro_tip: result.pro_tip,
     });
+    
     setSaving(false);
-    if (!error) { setSavedMsg(true); setTimeout(() => setSavedMsg(false), 3000); }
+
+    if (!error) { 
+      setSavedMsg(true); 
+      // KJO E NDREQI PROBLEMIN TËND: Tash ndizet rrethi i tretë "Masterpiece"
+      setActiveStep(3); 
+      
+      setTimeout(() => setSavedMsg(false), 3000); 
+    } else {
+      console.error("Supabase Error:", error.message);
+      setError("Dështoi ruajtja në galeri.");
+    }
   };
 
   const handleDeleteDesign = async (id) => {
@@ -105,18 +141,25 @@ export default function Home() {
   };
 
   const handleLoadDesign = (design) => {
-    setResult({ concept_title: design.concept_title, concept_description: design.concept_description, key_elements: design.key_elements, furniture: design.furniture, color_tips: design.color_tips, pro_tip: design.pro_tip });
-    setForm({ room: design.room, style: design.style, palette: design.palette, budget: design.budget, extra: "" });
-    setActiveTab("design"); setActiveStep(2);
+    setResult({ 
+      concept_title: design.concept_title, 
+      concept_description: design.concept_description, 
+      key_elements: design.key_elements, 
+      furniture: design.furniture, 
+      color_tips: design.color_tips, 
+      pro_tip: design.pro_tip 
+    });
+    setForm({ 
+      room: design.room, 
+      style: design.style, 
+      palette: design.palette, 
+      budget: design.budget, 
+      extra: "" 
+    });
+    setActiveTab("design"); 
+    // Kur e ngarkon nga historia, i ndezim dy rrethet e para
+    setActiveStep(2); 
   };
-
-  const handlePrint = () => window.print();
-
-  const filteredHistory = history.filter(d => {
-    const q = searchQuery.toLowerCase();
-    return d.concept_title?.toLowerCase().includes(q) || d.room?.toLowerCase().includes(q) || d.style?.toLowerCase().includes(q);
-  });
-
   const stats = {
     total: history.length,
     thisMonth: history.filter(d => new Date(d.created_at).getMonth() === new Date().getMonth()).length,
