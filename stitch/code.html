@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "error-container": "#93000a",
+                        "inverse-primary": "#0d61a4",
+                        "on-secondary-container": "#ffceba",
+                        "outline": "#8b919c",
+                        "tertiary-container": "#2ecc64",
+                        "surface-bright": "#3a3939",
+                        "surface-tint": "#a0c9ff",
+                        "on-primary": "#00325a",
+                        "tertiary-fixed-dim": "#4ae176",
+                        "on-primary-fixed": "#001c37",
+                        "surface": "#131313",
+                        "on-tertiary-fixed": "#002109",
+                        "primary-fixed-dim": "#a0c9ff",
+                        "secondary": "#ffb596",
+                        "primary-fixed": "#d2e4ff",
+                        "on-surface-variant": "#c1c7d2",
+                        "secondary-container": "#a33f00",
+                        "on-tertiary-container": "#005020",
+                        "surface-dim": "#131313",
+                        "outline-variant": "#414750",
+                        "primary-container": "#78b6ff",
+                        "primary": "#aed0ff",
+                        "on-primary-container": "#00467c",
+                        "surface-container-lowest": "#0e0e0e",
+                        "on-error": "#690005",
+                        "on-primary-fixed-variant": "#00497f",
+                        "on-surface": "#e5e2e1",
+                        "surface-container-low": "#1c1b1b",
+                        "surface-variant": "#353534",
+                        "tertiary": "#53e97d",
+                        "error": "#ffb4ab",
+                        "inverse-surface": "#e5e2e1",
+                        "background": "#131313",
+                        "surface-container-highest": "#353534",
+                        "on-error-container": "#ffdad6",
+                        "surface-container-high": "#2a2a2a",
+                        "on-tertiary-fixed-variant": "#005321",
+                        "on-secondary-fixed-variant": "#7c2e00",
+                        "on-secondary": "#581e00",
+                        "on-secondary-fixed": "#360f00",
+                        "inverse-on-surface": "#313030",
+                        "tertiary-fixed": "#6bff8f",
+                        "secondary-fixed-dim": "#ffb596",
+                        "on-background": "#e5e2e1",
+                        "secondary-fixed": "#ffdbcd",
+                        "surface-container": "#201f1f",
+                        "on-tertiary": "#003915"
+                    },
+                    fontFamily: {
+                        "headline": ["Space Grotesk"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+                },
+            },
+        }
+    </script>
+<style>
+        body { background-color: #050505; color: #e5e2e1; }
+        .glass-panel {
+            background: rgba(19, 19, 19, 0.03);
+            backdrop-filter: blur(20px);
+            border: 0.5px solid rgba(65, 71, 80, 0.2);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .monolith-text {
+            letter-spacing: -0.05em;
+        }
+        .stagger-1 { opacity: 0; transform: translateY(20px); }
+    </style>
+</head>
+<body class="font-body selection:bg-primary/30">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 bg-surface/3 backdrop-blur-xl border-b border-white/5 flex justify-between items-center px-8 h-16 shadow-[0_0_40px_rgba(59,130,246,0.05)]">
+<div class="flex items-center gap-8">
+<span class="text-xl font-headline font-bold tracking-tighter text-slate-100">MONOLITH</span>
+<div class="hidden md:flex gap-6">
+<a class="font-headline font-bold tracking-tighter text-blue-500 border-b-2 border-blue-500 pb-1" href="#">Projects</a>
+<a class="font-headline font-bold tracking-tighter text-slate-400 hover:text-slate-100 transition-colors" href="#">Studio</a>
+<a class="font-headline font-bold tracking-tighter text-slate-400 hover:text-slate-100 transition-colors" href="#">Assets</a>
+<a class="font-headline font-bold tracking-tighter text-slate-400 hover:text-slate-100 transition-colors" href="#">Archive</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative group">
+<span class="material-symbols-outlined text-slate-400 p-2 hover:bg-white/5 transition-all duration-300 cursor-pointer">notifications</span>
+</div>
+<span class="material-symbols-outlined text-slate-400 p-2 hover:bg-white/5 transition-all duration-300 cursor-pointer">settings</span>
+<button class="bg-primary text-on-primary font-bold px-4 py-2 rounded-md hover:scale-95 transition-all duration-200">New Render</button>
+<div class="w-8 h-8 rounded-full bg-surface-container overflow-hidden">
+<img alt="User profile" class="w-full h-full object-cover" data-alt="professional male architect portrait in a minimalist dark studio setting with soft directional lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC-vbvUrKA1n2vbZnJN3rNJU81Xoz_1GI1UFp8PkGmJgGAX0IZ8rYS_zX0OXxDUNN0XK-Z3bemgQZ4nr2nOfh23W7BB1Ne2PKyO11T0kHlXvxUFIjL_mxdAaWejn_sHGvtqu1lfXISbnJ4J4S_2Q2GXWDIti-ll-CXfTTJUkX6WQmfT2aJu9PKebbsRffZ9f9HpAu1ooQ0NN3qCQec69o0A_KV3EOyWnyogQ2auuXYF-agZxInRKCyGQr_Q3PmWpytABxQVG5Yjgw"/>
+</div>
+</div>
+</nav>
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-16 h-[calc(100vh-64px)] w-20 hover:w-64 transition-all duration-500 overflow-hidden border-r border-white/5 bg-black/20 backdrop-blur-2xl z-40 flex flex-col justify-between py-6 group">
+<div class="flex flex-col gap-4">
+<div class="px-6 mb-8 flex items-center gap-4 opacity-0 group-hover:opacity-100 transition-opacity">
+<div class="w-10 h-10 rounded-md bg-primary-container overflow-hidden shrink-0">
+<img alt="Project Thumbnail" class="w-full h-full object-cover" data-alt="abstract architectural geometry of a skyscraper against a dark sky with dramatic highlights" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCmIHntMjPJlfLmgmdff9yEzYLquLYNzMHApnXW2ZvU7EIAW2074NGuWvWlm7uQQV0th-izBoUMDVEq5rcwkKTS5bBWq2Kaolz1eB9RldCtH_8kLYyT3B6ByXAhUfPQ3h0mIlNBlpxeklVbuEwJejKSXFV19fsgGoP8mzhU-q5_dOrbmLVjcu8PB4caT55zOdeeues4JdFeuwzz7QPOT2e_-NbAiHooPiKV8PjLpuMW4izaiqJofjDLp_nbQ1GT--GC--9u0YBkAQ"/>
+</div>
+<div class="flex flex-col">
+<span class="text-xs font-bold text-slate-100 truncate">Project Alpha</span>
+<span class="text-[10px] text-slate-500">V-Ray Engine</span>
+</div>
+</div>
+<nav class="flex flex-col">
+<div class="flex items-center gap-4 px-6 py-4 bg-blue-500/10 text-blue-400 border-r-2 border-blue-500 cursor-pointer">
+<span class="material-symbols-outlined">build</span>
+<span class="font-['Inter'] text-xs font-medium uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">Tools</span>
+</div>
+<div class="flex items-center gap-4 px-6 py-4 text-slate-500 hover:text-slate-200 hover:bg-white/5 transition-all cursor-pointer">
+<span class="material-symbols-outlined">layers</span>
+<span class="font-['Inter'] text-xs font-medium uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">Layers</span>
+</div>
+<div class="flex items-center gap-4 px-6 py-4 text-slate-500 hover:text-slate-200 hover:bg-white/5 transition-all cursor-pointer">
+<span class="material-symbols-outlined">texture</span>
+<span class="font-['Inter'] text-xs font-medium uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">Materials</span>
+</div>
+<div class="flex items-center gap-4 px-6 py-4 text-slate-500 hover:text-slate-200 hover:bg-white/5 transition-all cursor-pointer">
+<span class="material-symbols-outlined">light_mode</span>
+<span class="font-['Inter'] text-xs font-medium uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">Lighting</span>
+</div>
+<div class="flex items-center gap-4 px-6 py-4 text-slate-500 hover:text-slate-200 hover:bg-white/5 transition-all cursor-pointer">
+<span class="material-symbols-outlined">videocam</span>
+<span class="font-['Inter'] text-xs font-medium uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">Camera</span>
+</div>
+</nav>
+</div>
+<div class="flex flex-col border-t border-white/5 pt-6">
+<div class="flex items-center gap-4 px-6 py-4 text-slate-500 hover:text-slate-200 cursor-pointer">
+<span class="material-symbols-outlined">help_outline</span>
+<span class="font-['Inter'] text-xs font-medium uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">Help</span>
+</div>
+<div class="flex items-center gap-4 px-6 py-4 text-slate-500 hover:text-slate-200 cursor-pointer">
+<span class="material-symbols-outlined">chat_bubble_outline</span>
+<span class="font-['Inter'] text-xs font-medium uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">Feedback</span>
+</div>
+</div>
+</aside>
+<!-- Main Workspace Content -->
+<main class="ml-20 pt-24 px-8 pb-12 transition-all duration-500">
+<!-- Hero Header -->
+<header class="mb-20">
+<h1 class="text-6xl md:text-7xl font-headline font-bold monolith-text text-on-surface mb-4">Workspace.</h1>
+<p class="text-on-surface-variant max-w-2xl font-body text-lg leading-relaxed">
+                Advanced architectural spatial analysis and lighting simulations. Curate your environments with surgical precision.
+            </p>
+</header>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-4 auto-rows-[250px]">
+<!-- Large Project Highlight -->
+<div class="md:col-span-8 md:row-span-2 glass-panel rounded-lg overflow-hidden group relative cursor-pointer">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" data-alt="modern luxury concrete villa exterior at twilight with glowing interior lights reflected in a pool" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBcDW3MT_Wn5lKBA7OdWj0MbeauzUwF4h9mf0JBBycIB2aW067CZbYxwvsMvqCx9SeURG1PpfELZXaTsKEQzbzubsv_1Nwode-G1sWtJ_uUHWq8AtJib-X8SXmkaUF_5wUrtKlkol7A7Q6q5ZpVyX4f3tPH0hGwED_roRx5e_31cKbNI3gk-p3ESDvCd5BrdPelj2fRgDn9v-9Ox5UT2umSA1p0vE4q8e6NtJZhlb7eAngupYCoUJoPm8pAzBRQzY5Iz8DHptgc2Q"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent p-8 flex flex-col justify-end">
+<span class="text-primary text-xs font-bold tracking-widest uppercase mb-2">Featured Project</span>
+<h3 class="text-3xl font-headline font-bold monolith-text">NEO-BRUTALIST VILLA</h3>
+<p class="text-slate-300 text-sm max-w-md mt-2">Active Ray-Tracing Simulation • 4.2k Render</p>
+</div>
+</div>
+<!-- Stats Panel -->
+<div class="md:col-span-4 glass-panel rounded-lg p-6 flex flex-col justify-between">
+<div class="flex justify-between items-start">
+<span class="text-slate-500 font-label text-[10px] uppercase tracking-[0.2em]">GPU Usage</span>
+<span class="material-symbols-outlined text-blue-400">monitoring</span>
+</div>
+<div class="mt-4">
+<div class="text-4xl font-headline font-bold monolith-text">84<span class="text-sm font-normal text-slate-500 ml-1">%</span></div>
+<div class="w-full h-[2px] bg-white/5 mt-4 overflow-hidden">
+<div class="h-full bg-blue-500 w-[84%]"></div>
+</div>
+</div>
+<p class="text-[10px] text-slate-500 mt-4 leading-tight">NVIDIA RTX 4090 TI • STABLE TEMPERATURE 62°C</p>
+</div>
+<!-- Material Library Quick Access -->
+<div class="md:col-span-4 glass-panel rounded-lg p-6 flex flex-col justify-between">
+<div>
+<h4 class="text-xs font-bold text-slate-300 uppercase tracking-widest mb-4">Quick Materials</h4>
+<div class="flex gap-2">
+<div class="w-10 h-10 rounded-full bg-surface-container-high border border-white/10 flex items-center justify-center overflow-hidden">
+<div class="w-full h-full bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-slate-400 to-slate-800"></div>
+</div>
+<div class="w-10 h-10 rounded-full bg-surface-container-high border border-white/10 flex items-center justify-center overflow-hidden">
+<div class="w-full h-full bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-400 to-blue-900"></div>
+</div>
+<div class="w-10 h-10 rounded-full bg-surface-container-high border border-white/10 flex items-center justify-center overflow-hidden">
+<div class="w-full h-full bg-[linear-gradient(45deg,_var(--tw-gradient-stops))] from-stone-400 to-stone-600"></div>
+</div>
+</div>
+</div>
+<button class="w-full py-3 bg-white/5 hover:bg-white/10 text-slate-100 text-[10px] font-bold uppercase tracking-widest transition-all">
+                    Open Library
+                </button>
+</div>
+<!-- Small Detail Card 1 -->
+<div class="md:col-span-4 glass-panel rounded-lg overflow-hidden group cursor-pointer">
+<img class="w-full h-40 object-cover group-hover:scale-110 transition-transform duration-500" data-alt="minimalist interior living room with dark wood panels and soft shadows from tall windows" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCydGO69M7P5nEHPBVE4dgNQtOi08jTfNwhiOIQC4fSafrk8lkgP6COMzdLdfA1fExCEIFiejoQUfZcSR3E2laW4fYT1toCc20504S4Q_gh2HvgqUs5sQuwiGRHTpKh8wkSoNZOpDxq6DZfr9TFFHK3jHPJvRuxeVruGeYLVnEFAe_OE1lDF_qTdJNaA1pGAQg_FKcxWi79ILfVpMd0uxqi7MMSRn_4Vod83i0rS1QBLG5RKUVfd3a6RhUxBEI8UTsBmN1UqKe8ew"/>
+<div class="p-4">
+<h5 class="text-xs font-bold text-slate-100 mb-1">Atmospheric Study</h5>
+<p class="text-[10px] text-slate-500">Interior Volumetric Lighting</p>
+</div>
+</div>
+<!-- Small Detail Card 2 -->
+<div class="md:col-span-4 glass-panel rounded-lg overflow-hidden group cursor-pointer">
+<img class="w-full h-40 object-cover group-hover:scale-110 transition-transform duration-500" data-alt="close-up view of a luxury rooftop terrace with glass railings overlooking a dark city skyline" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBL8Vylhv1psRlN_ofUgRDJv68blVWPG1arhtsSNuV6pfcg2E01EAqtIrH_RfxWI47tPnTFPVYle1_9yUjd3umD2EBpq7H67WwSDroUav_ukca5dYzqYe6WnjsevO30D6aaDI6-_QXfWXUPQe_XDfQGqHQZ2NhEvBGWkrQ5l63GqvogNd9Jl3kfVGkRWFw7FUUKPVBaz1FBApuak64XhZyQamR_9OoJPfW0kp_U31v8yczqRB-IS8beIgWCepDljJPDsgLhweujWQ"/>
+<div class="p-4">
+<h5 class="text-xs font-bold text-slate-100 mb-1">Observation Deck</h5>
+<p class="text-[10px] text-slate-500">Exterior Glass Refraction</p>
+</div>
+</div>
+<!-- Small Detail Card 3 -->
+<div class="md:col-span-4 glass-panel rounded-lg overflow-hidden group cursor-pointer">
+<img class="w-full h-40 object-cover group-hover:scale-110 transition-transform duration-500" data-alt="technical wireframe view of a modern office building interior showing structural lines" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDfWNPonzmclZrq0H31y22E4xF9sAEWOupZmeOPMXqbabveuPCLtKGyItpRbfwuG0y6cYkeuStzF5rDsMQwl214xTA5dFrj8JwFkmNtrZ6Kuu3g2DYijadxLY6l-HXAZRmkGT0OsGSw9MjBCLhS_rx930pRW78LnpA5DIQwOXqwz5WouHM47dlhA8H5lndtqU6udM_CfgcFdYX6cLmT-rXFPlI9ELMM0QWDWhf5904UN4iy6mTjHcj_sH8TdF_jqXgnfUYMbp0_lg"/>
+<div class="p-4">
+<h5 class="text-xs font-bold text-slate-100 mb-1">Structure Preview</h5>
+<p class="text-[10px] text-slate-500">Mesh Topology Visualization</p>
+</div>
+</div>
+</div>
+<!-- Section Tonal Shift Divider -->
+<div class="mt-24 h-[1px] bg-gradient-to-r from-transparent via-white/5 to-transparent"></div>
+<!-- Secondary Section -->
+<section class="mt-24">
+<div class="flex justify-between items-end mb-12">
+<div>
+<h2 class="text-4xl font-headline font-bold monolith-text text-on-surface">Recent Studio Work</h2>
+<p class="text-on-surface-variant font-body text-sm mt-2">Latest assets synchronized from the cloud cluster.</p>
+</div>
+<button class="text-blue-400 text-xs font-bold tracking-widest uppercase flex items-center gap-2 hover:translate-x-1 transition-transform">
+                    View Archive <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+<!-- Asset Card -->
+<div class="surface-container-low p-1 rounded-lg border border-white/5 hover:border-blue-500/30 transition-all group">
+<div class="aspect-square bg-black overflow-hidden rounded">
+<img class="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" data-alt="top-down blueprint layout of an urban apartment with technical annotations and symbols" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCFadIVZxF0rQVmeYyN0QfLfKZ6V7IoIelX2OPTrzN29BDzbQGpNbTQEnI3hFEuQg3tJ-_T2jJypT5S4B5l7XmSLpD9XRJTO_ZeCCjkY3I7KWvwN_tDQ6Au9rkV1nheA37_34fv5G1LNEmic6x3ZbGhJrKDjHA34a9gkMAJnvZOHUNzL_HLccThTl8CUotO2KqXwLEebY2jP6hKf_0ASrng_RWpWKmD_o5Xq33YcTpAGuP84nFoJh58SHZ9uAP4Dr5WUrB7fQb8SQ"/>
+</div>
+<div class="p-4">
+<div class="flex justify-between items-center mb-2">
+<span class="text-[10px] font-bold text-slate-500">CAD_MODEL_392</span>
+<span class="text-[10px] text-blue-500">SYNCED</span>
+</div>
+<h6 class="text-sm font-bold text-slate-100">Floorplan_V4_Final</h6>
+</div>
+</div>
+<!-- Asset Card -->
+<div class="surface-container-low p-1 rounded-lg border border-white/5 hover:border-blue-500/30 transition-all group">
+<div class="aspect-square bg-black overflow-hidden rounded">
+<img class="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" data-alt="abstract image of architecture steel beams and glass paneling in a monochromatic tone" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBic866p9NQAD97PkN1gzUsyj6vhm1c98-t34Kh9W4u4iUx8Dwifmjfab3cU2Svgmn94aXP9a2YQqDM84rTxZUkrsKnfU2oMGNCyhfwQW7tnL2oWWKkoLT2R2THHBqrp5PzIMQyRWPgm1r4e8QHdNoGZtPHXnbN9ezr368eCFe0IzPJd3mpV62pAFdGBl7zb-lAiflrT59H4gZ2E5t2EntIgrK3Au2syiAhhUTVBPRIj7dEu3BxY4Jkf-2B4u7PPs4dgSkP2F7FIA"/>
+</div>
+<div class="p-4">
+<div class="flex justify-between items-center mb-2">
+<span class="text-[10px] font-bold text-slate-500">MAT_SHADER_81</span>
+<span class="text-[10px] text-blue-500">SYNCED</span>
+</div>
+<h6 class="text-sm font-bold text-slate-100">Brushed_Steel_PBR</h6>
+</div>
+</div>
+<!-- Asset Card -->
+<div class="surface-container-low p-1 rounded-lg border border-white/5 hover:border-blue-500/30 transition-all group">
+<div class="aspect-square bg-black overflow-hidden rounded">
+<img class="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" data-alt="construction site detail showing concrete texture and steel reinforcement at a low angle" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAHLIRstYTsLdWjQmJbZ8cowi3fJhDRFZblRuftV9JTx1opoM5OKvTgG9nCbSye7ZKSI31qzLs_bpPGALwf5661lNrRTz3uO5jm7wauQCS0YtTKclV_0-Zm_w5I63K5MnjeUL4ZN5ySOqkna4Ud3dBXx7W1MaoqwYDzeCSzpoPWewJ1GDBvh9YeDFpNTxh1YXoPxeoOBuatT9n2cgjhdZkT1YESDRf_cJPFsTRhqpZ8euGSCu9ohoSDclAjJTQ2c3L7VwD26gSC7A"/>
+</div>
+<div class="p-4">
+<div class="flex justify-between items-center mb-2">
+<span class="text-[10px] font-bold text-slate-500">ENV_MAP_02</span>
+<span class="text-[10px] text-slate-600">OFFLINE</span>
+</div>
+<h6 class="text-sm font-bold text-slate-100">Sunset_Industrial_HDR</h6>
+</div>
+</div>
+<!-- Asset Card -->
+<div class="surface-container-low p-1 rounded-lg border border-white/5 hover:border-blue-500/30 transition-all group">
+<div class="aspect-square bg-black overflow-hidden rounded">
+<img class="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" data-alt="architectural close up of a white spiral staircase with perfect curved geometric lines" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDs3adYEDH6K3piuAx8VdyXIc0lS52gF9tyPmga1kkARYqYChya3CEkDIOPpxXp53Az1Brd9rNlkKiTr9MN3Y__hvtKidJJ1TYklBcEaIhz0QTTgbmlg8ZgbZctuPiMpgMlacuIPvOfB7Wkn2LfopkvuP72AqHbIpOk9xiJriGJuq8OaLdIgsxBc8O2mhHpiH2QT5RHq2XiVliwiqko3YQeSRUUCIQU0j4g4aH5WMj9a5JA4FdPQT-sMP0IUcUnBTOVhnYTdycoIA"/>
+</div>
+<div class="p-4">
+<div class="flex justify-between items-center mb-2">
+<span class="text-[10px] font-bold text-slate-500">GEO_MESH_11</span>
+<span class="text-[10px] text-blue-500">SYNCED</span>
+</div>
+<h6 class="text-sm font-bold text-slate-100">Helical_Stairs_V2</h6>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="w-full py-8 mt-auto bg-transparent">
+<div class="max-w-7xl mx-auto px-8 flex justify-between items-center opacity-50">
+<span class="font-['Inter'] text-[10px] tracking-widest uppercase text-slate-500">© 2024 MONOLITH ARCHITECTURAL. ALL RIGHTS RESERVED.</span>
+<div class="flex gap-8">
+<a class="font-['Inter'] text-[10px] tracking-widest uppercase text-slate-600 hover:text-slate-300 transition-colors" href="#">Terms</a>
+<a class="font-['Inter'] text-[10px] tracking-widest uppercase text-slate-600 hover:text-slate-300 transition-colors" href="#">Privacy</a>
+<a class="font-['Inter'] text-[10px] tracking-widest uppercase text-slate-600 hover:text-slate-300 transition-colors" href="#">API Docs</a>
+<a class="font-['Inter'] text-[10px] tracking-widest uppercase text-slate-600 hover:text-slate-300 transition-colors" href="#">System Status</a>
+</div>
+</div>
+</footer>
+</body></html>
