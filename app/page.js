@@ -111,6 +111,7 @@ export default function Home() {
       furniture: result.furniture,
       color_tips: result.color_tips,
       pro_tip: result.pro_tip,
+      photos: photos,
     });
     setSaving(false);
     if (!error) {
@@ -138,7 +139,7 @@ export default function Home() {
       pro_tip: design.pro_tip,
     });
     setForm({ room: design.room, style: design.style, palette: design.palette, budget: design.budget, extra: "" });
-    setPhotos([]);
+    setPhotos(design.photos || []);
     setActiveTab("design");
     setActiveStep(2);
   };
@@ -525,21 +526,58 @@ export default function Home() {
                     <div style={{ padding: "48px" }}>
                       <p style={{ fontSize: 16, color: "#94A3B8", lineHeight: 1.8, marginBottom: 40 }}>{result.concept_description}</p>
 
-                      {/* INSPIRATION PHOTOS */}
+                      {/* INSPIRATION PHOTOS WITH OVERLAYS */}
                       {photos.length > 0 && (
                         <div style={{ marginBottom: 40 }}>
                           <div style={{ fontSize: 12, fontWeight: 700, color: "#fff", letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: 20, display: "flex", alignItems: "center", gap: 10 }}>
                             <div style={{ width: 4, height: 16, background: "#F59E0B", borderRadius: 4 }} /> Inspiration Photos
                           </div>
                           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                            {photos.map((p, i) => (
-                              <div key={i} style={{ borderRadius: 12, overflow: "hidden", position: "relative", aspectRatio: "16/9" }}>
-                                <img src={p.url} alt={`Inspiration ${i+1}`} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                                <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "8px 12px", background: "linear-gradient(to top, rgba(0,0,0,0.7), transparent)", fontSize: 11, color: "rgba(255,255,255,0.7)" }}>
-                                  Photo by <a href={p.creditLink} target="_blank" rel="noreferrer" style={{ color: "rgba(255,255,255,0.9)" }}>{p.credit}</a> on Unsplash
+                            {photos.map((p, i) => {
+                              const piece = result.furniture?.[i];
+                              return (
+                                <div key={i} style={{ borderRadius: 12, overflow: "hidden", position: "relative", aspectRatio: "16/9" }}>
+                                  <img
+                                    src={p.url}
+                                    alt={`Inspiration ${i + 1}`}
+                                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                                    onError={e => { e.target.style.display = "none"; }}
+                                  />
+
+                                  {/* DIMENSIONS — top left */}
+                                  {piece && (piece.width_cm || piece.height_cm || piece.depth_cm) && (
+                                    <div style={{ position: "absolute", top: 10, left: 10, display: "flex", gap: 5, flexWrap: "wrap" }}>
+                                      {[["W", piece.width_cm], ["H", piece.height_cm], ["D", piece.depth_cm]].map(([label, val]) =>
+                                        val ? (
+                                          <span key={label} style={{ background: "rgba(0,0,0,0.72)", backdropFilter: "blur(6px)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 6, padding: "3px 8px", fontSize: 11, fontWeight: 700, color: "#67E8F9", letterSpacing: "0.5px" }}>
+                                            {label}: {val}cm
+                                          </span>
+                                        ) : null
+                                      )}
+                                    </div>
+                                  )}
+
+                                  {/* FURNITURE NAME — top right */}
+                                  {piece && (
+                                    <div style={{ position: "absolute", top: 10, right: 10, background: "rgba(0,0,0,0.72)", backdropFilter: "blur(6px)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "4px 10px", fontSize: 11, fontWeight: 600, color: "#fff", maxWidth: 140, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                                      {piece.item}
+                                    </div>
+                                  )}
+
+                                  {/* PRICE — bottom left above credit */}
+                                  {piece && (
+                                    <div style={{ position: "absolute", bottom: 32, left: 10, background: "rgba(6,182,212,0.88)", backdropFilter: "blur(6px)", borderRadius: 8, padding: "4px 12px", fontSize: 12, fontWeight: 800, color: "#fff" }}>
+                                      {piece.approx_price}
+                                    </div>
+                                  )}
+
+                                  {/* CREDIT — bottom */}
+                                  <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "8px 12px", background: "linear-gradient(to top, rgba(0,0,0,0.7), transparent)", fontSize: 11, color: "rgba(255,255,255,0.7)" }}>
+                                    Photo by <a href={p.creditLink} target="_blank" rel="noreferrer" style={{ color: "rgba(255,255,255,0.9)" }}>{p.credit}</a> on Unsplash
+                                  </div>
                                 </div>
-                              </div>
-                            ))}
+                              );
+                            })}
                           </div>
                         </div>
                       )}
