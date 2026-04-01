@@ -4,6 +4,7 @@ import { supabase } from "../../lib/supabase";
 import { useRouter } from "next/navigation";
 
 const ROTATING_WORDS = ["Living Room", "Bedroom", "Kitchen", "Home Office", "Dining Room", "Bathroom"];
+export const dynamic = 'force-dynamic';
 
 const FEATURES = [
   { icon: "🛋️", title: "Smart Room Layouts", desc: "AI analyzes your space and generates optimized furniture arrangements for maximum comfort and flow." },
