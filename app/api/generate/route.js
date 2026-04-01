@@ -2,11 +2,11 @@ export async function POST(req) {
   try {
     const { room, style, palette, budget, extra } = await req.json();
     
-    // Kontrollon të dy emrat e variablave që i kemi në Vercel dhe Local
-    const apiKey = process.env.NEXT_PUBLIC_GROQ_API_KEY || process.env.GROQ_API_KEY;
+    // Përdorim variablën që pamë në Vercel Dashboard
+    const apiKey = process.env.NEXT_PUBLIC_GROQ_API_KEY;
 
     if (!apiKey) {
-      console.error("API Key is missing!");
+      console.error("GABIM: API Key mungon!");
       return Response.json({ success: false, error: "Konfigurimi i serverit dështoi." }, { status: 500 });
     }
 
@@ -17,7 +17,8 @@ export async function POST(req) {
         "Authorization": `Bearer ${apiKey}`
       },
       body: JSON.stringify({
-        model: "llama3-8b-8192", // Model i shpejtë dhe stabil për studentë
+        // NDRYSHIMI KËTU: Përdor këtë emër modeli sepse tjetri është mbyllur
+        model: "llama-3.3-70b-versatile", 
         messages: [
           { 
             role: "system", 
@@ -35,13 +36,13 @@ export async function POST(req) {
 
     const data = await response.json();
     
+    // Kontrolli i sigurisë: Nëse Groq kthen error, mos e lejo kodin të "vdesë" te choices[0]
     if (!data.choices || !data.choices[0]) {
-      throw new Error(data.error?.message || "AI nuk ktheu përgjigje.");
+      console.error("Groq Error Response:", data);
+      return Response.json({ success: false, error: data.error?.message || "AI dështoi." }, { status: 500 });
     }
 
     const text = data.choices[0].message.content;
-    
-    // Pastron JSON-in nga mbetjet e mundshme të Markdown
     const cleanJson = text.replace(/```json|```/g, "").trim();
     const design = JSON.parse(cleanJson);
 
