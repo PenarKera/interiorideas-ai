@@ -1,55 +1,75 @@
 export async function POST(req) {
   try {
     const { room, style, palette, budget, extra } = await req.json();
-    
-    // Përdorim variablën që pamë në Vercel Dashboard
-    const apiKey = process.env.NEXT_PUBLIC_GROQ_API_KEY;
 
-    if (!apiKey) {
-      console.error("GABIM: API Key mungon!");
-      return Response.json({ success: false, error: "Konfigurimi i serverit dështoi." }, { status: 500 });
-    }
-
+    // AI Generation
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${apiKey}`
+        "Authorization": `Bearer ${process.env.GROQ_API_KEY}`
       },
       body: JSON.stringify({
-        // NDRYSHIMI KËTU: Përdor këtë emër modeli sepse tjetri është mbyllur
-        model: "llama-3.3-70b-versatile", 
+        model: "llama-3.3-70b-versatile",
+        max_tokens: 1200,
         messages: [
-          { 
-            role: "system", 
-            content: "You are an expert interior designer for InteriorIdeas.ai. Return ONLY clean JSON, no markdown, no backticks." 
+          {
+            role: "system",
+            content: "You are an expert interior designer for InteriorIdeas.ai. Return ONLY clean JSON, no markdown, no backticks."
           },
-          { 
-            role: "user", 
+          {
+            role: "user",
             content: `Create a design for: Room: ${room}, Style: ${style}, Palette: ${palette}, Budget: ${budget}. ${extra || ""} 
-            Return JSON: {"concept_title":"...","concept_description":"...","key_elements":["..."],"furniture":[{"item":"...","description":"...","approx_price":"$XXX"}],"color_tips":["..."],"pro_tip":"..."}` 
+Return this exact JSON structure:
+{
+  "concept_title": "...",
+  "concept_description": "...",
+  "key_elements": ["...", "..."],
+  "furniture": [
+    {"item": "...", "description": "...", "approx_price": "$XXX", "width_cm": 120, "height_cm": 80, "depth_cm": 60}
+  ],
+  "color_tips": ["...", "..."],
+  "pro_tip": "...",
+  "room_dimensions": {
+    "recommended_width_m": 4.5,
+    "recommended_length_m": 6.0,
+    "ceiling_height_m": 2.7
+  },
+  "layout_tips": ["placement tip 1", "placement tip 2"]
+}`
           }
-        ],
-        temperature: 0.7
+        ]
       })
     });
 
     const data = await response.json();
-    
-    // Kontrolli i sigurisë: Nëse Groq kthen error, mos e lejo kodin të "vdesë" te choices[0]
-    if (!data.choices || !data.choices[0]) {
-      console.error("Groq Error Response:", data);
-      return Response.json({ success: false, error: data.error?.message || "AI dështoi." }, { status: 500 });
+    const text = data.choices[0].message.content;
+    const design = JSON.parse(text.replace(/```json|```/g, "").trim());
+
+    // Unsplash photo search
+    let photos = [];
+    try {
+      const query = encodeURIComponent(`${style} ${room} interior design`);
+      const unsplashRes = await fetch(
+        `https://api.unsplash.com/search/photos?query=${query}&per_page=4&orientation=landscape`,
+        { headers: { Authorization: `Client-ID ${process.env.UNSPLASH_ACCESS_KEY}` } }
+      );
+      const unsplashData = await unsplashRes.json();
+      photos = unsplashData.results?.map(p => ({
+        url: p.urls.regular,
+        thumb: p.urls.small,
+        credit: p.user.name,
+        creditLink: p.user.links.html,
+      })) || [];
+    } catch (photoError) {
+      console.error("Unsplash error:", photoError);
+      // Continue without photos if Unsplash fails
     }
 
-    const text = data.choices[0].message.content;
-    const cleanJson = text.replace(/```json|```/g, "").trim();
-    const design = JSON.parse(cleanJson);
-
-    return Response.json({ success: true, design });
+    return Response.json({ success: true, design, photos });
 
   } catch (error) {
-    console.error("GENERATE_ERROR:", error.message);
-    return Response.json({ success: false, error: "Gjenerimi dështoi. Provoni përsëri." }, { status: 500 });
+    console.error(error);
+    return Response.json({ success: false, error: "Generation failed. Please try again." }, { status: 500 });
   }
 }
