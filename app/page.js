@@ -604,6 +604,56 @@ export default function Home() {
                         </div>
                       )}
 
+                      {/* BUDGET TRACKER */}
+                      {result.furniture && (() => {
+                        const totalSpend = result.furniture.reduce((sum, f) => {
+                          const num = parseFloat((f.approx_price || "0").replace(/[^0-9.]/g, ""));
+                          return sum + (isNaN(num) ? 0 : num);
+                        }, 0);
+                        const budgetMap = { "$500 – $1,500": [500,1500], "$1,500 – $5,000": [1500,5000], "$5,000 – $15,000": [5000,15000], "$15,000+": [15000,20000] };
+                        const [budgetMin, budgetMax] = budgetMap[form.budget] || [1500,5000];
+                        const pct = Math.min((totalSpend / budgetMax) * 100, 100);
+                        const isOver = totalSpend > budgetMax;
+                        const isClose = !isOver && totalSpend > budgetMax * 0.85;
+                        const barColor = isOver ? "#EF4444" : isClose ? "#F59E0B" : "#10B981";
+                        const remaining = budgetMax - totalSpend;
+                        return (
+                          <div style={{ marginBottom: 40 }}>
+                            <div style={{ fontSize: 12, fontWeight: 700, color: "#fff", letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: 20, display: "flex", alignItems: "center", gap: 10 }}>
+                              <div style={{ width: 4, height: 16, background: barColor, borderRadius: 4 }} /> Budget Tracker
+                            </div>
+                            <div style={{ background: "rgba(255,255,255,0.02)", border: `1px solid ${isOver ? "rgba(239,68,68,0.2)" : isClose ? "rgba(245,158,11,0.2)" : "rgba(16,185,129,0.2)"}`, borderRadius: 16, padding: "24px 28px" }}>
+                              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 24 }}>
+                                <div style={{ textAlign: "center" }}>
+                                  <div style={{ fontSize: 11, color: "#475569", letterSpacing: "1px", textTransform: "uppercase", marginBottom: 8 }}>Totali</div>
+                                  <div style={{ fontSize: 28, fontWeight: 800, color: "#fff" }}>${totalSpend.toLocaleString()}</div>
+                                </div>
+                                <div style={{ textAlign: "center", borderLeft: "1px solid rgba(255,255,255,0.05)", borderRight: "1px solid rgba(255,255,255,0.05)" }}>
+                                  <div style={{ fontSize: 11, color: "#475569", letterSpacing: "1px", textTransform: "uppercase", marginBottom: 8 }}>Budget</div>
+                                  <div style={{ fontSize: 18, fontWeight: 800, color: "#94A3B8", marginTop: 4 }}>{form.budget}</div>
+                                </div>
+                                <div style={{ textAlign: "center" }}>
+                                  <div style={{ fontSize: 11, color: "#475569", letterSpacing: "1px", textTransform: "uppercase", marginBottom: 8 }}>{isOver ? "Tejkaluar" : "Mbetur"}</div>
+                                  <div style={{ fontSize: 28, fontWeight: 800, color: barColor }}>{isOver ? `+$${Math.abs(remaining).toLocaleString()}` : `$${remaining.toLocaleString()}`}</div>
+                                </div>
+                              </div>
+                              <div style={{ marginBottom: 12 }}>
+                                <div style={{ height: 10, background: "rgba(255,255,255,0.05)", borderRadius: 10, overflow: "hidden" }}>
+                                  <div style={{ height: "100%", width: `${pct}%`, background: barColor, borderRadius: 10 }} />
+                                </div>
+                              </div>
+                              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                <span style={{ fontSize: 12, color: "#475569" }}>${budgetMin.toLocaleString()}</span>
+                                <span style={{ fontSize: 13, fontWeight: 700, color: barColor }}>
+                                  {isOver ? `⚠ ${pct.toFixed(0)}% — Tejkaluar` : isClose ? `⚡ ${pct.toFixed(0)}% — Afër limitit` : `✓ ${pct.toFixed(0)}% — Brenda budget-it`}
+                                </span>
+                                <span style={{ fontSize: 12, color: "#475569" }}>${budgetMax.toLocaleString()}</span>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })()}
+
                       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 40, marginBottom: 40 }}>
                         {/* Core Elements */}
                         <div>
