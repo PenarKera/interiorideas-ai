@@ -182,7 +182,7 @@ export default function Home() {
       <div style={{ position: "absolute", bottom: "-300px", right: "-100px", width: "800px", height: "800px", background: "radial-gradient(circle, rgba(99,102,241,0.04) 0%, transparent 70%)", borderRadius: "50%", zIndex: 0, pointerEvents: "none" }} />
 
       {/* SIDEBAR */}
-      <aside className="no-print" style={{ width: sidebarW, flexShrink: 0, background: "rgba(8,11,20,0.95)", borderRight: "1px solid rgba(255,255,255,0.05)", display: "flex", flexDirection: "column", position: "sticky", top: 0, height: "100vh", transition: "width 0.4s cubic-bezier(0.16, 1, 0.3, 1)", zIndex: 50 }}>
+      <aside className="no-print" style={{ width: sidebarW, flexShrink: 0, alignSelf: "stretch", minHeight: "100vh", background: "rgba(8,11,20,0.95)", borderRight: "1px solid rgba(255,255,255,0.05)", display: "flex", flexDirection: "column", transition: "width 0.4s cubic-bezier(0.16, 1, 0.3, 1)", zIndex: 50 }}>
         <div style={{ padding: sidebarCollapsed ? "28px 0" : "28px 24px", display: "flex", alignItems: "center", justifyContent: sidebarCollapsed ? "center" : "space-between", position: "relative", borderBottom: "1px solid rgba(255,255,255,0.03)" }}>
           {!sidebarCollapsed && (
             <div style={{ display: "flex", alignItems: "center", gap: 12, overflow: "hidden" }}>
@@ -205,7 +205,7 @@ export default function Home() {
             const isActive = activeTab === id;
             return (
               <button key={id} onClick={() => setActiveTab(id)} title={sidebarCollapsed ? label : undefined}
-                style={{ display: "flex", alignItems: "center", gap: 14, padding: sidebarCollapsed ? "12px 0" : "12px 16px", justifyContent: sidebarCollapsed ? "center" : "flex-start", background: isActive ? "rgba(59,130,246,0.1)" : "transparent", borderLeft: isActive ? "3px solid #3B82F6" : "3px solid transparent", borderRadius: sidebarCollapsed ? 12 : 0, cursor: "pointer", color: isActive ? "#fff" : "#64748B", border: "none", fontSize: 14, fontWeight: isActive ? 600 : 500, width: "100%", transition: "all 0.2s", textAlign: "left" }}
+                style={{ display: "flex", alignItems: "center", gap: 14, padding: sidebarCollapsed ? "12px 0" : "12px 16px", justifyContent: sidebarCollapsed ? "center" : "flex-start", background: isActive ? "linear-gradient(135deg, rgba(59,130,246,0.16), rgba(99,102,241,0.08))" : "transparent", border: isActive ? "1px solid rgba(59,130,246,0.22)" : "1px solid transparent", borderRadius: 14, cursor: "pointer", color: isActive ? "#fff" : "#64748B", fontSize: 14, fontWeight: isActive ? 600 : 500, width: "100%", transition: "all 0.2s", textAlign: "left", boxShadow: isActive ? "inset 0 1px 0 rgba(255,255,255,0.04), 0 12px 24px rgba(2,6,23,0.22)" : "none" }}
                 onMouseEnter={e => { if (!isActive) e.currentTarget.style.color = "#fff"; }}
                 onMouseLeave={e => { if (!isActive) e.currentTarget.style.color = "#64748B"; }}>
                 <span style={{ fontSize: 18, flexShrink: 0, color: isActive ? "#3B82F6" : "inherit" }}>{icon}</span>
@@ -270,7 +270,7 @@ export default function Home() {
           </div>
         </header>
 
-        <main style={{ flex: 1, padding: "40px", overflowY: "auto" }}>
+        <main style={{ flex: 1, padding: "40px 36px 56px", overflowY: "auto" }}>
 
           {/* ANALYTICS */}
           {activeTab === "stats" && (
@@ -394,7 +394,7 @@ export default function Home() {
 
           {/* DESIGN STUDIO */}
           {activeTab === "design" && (
-            <div style={{ maxWidth: 940, margin: "0 auto" }}>
+            <div style={{ width: "min(100%, 960px)", margin: "0 auto" }}>
               {!result && (
                 <div style={{ marginBottom: 40 }}>
                   <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(59,130,246,0.1)", border: "1px solid rgba(59,130,246,0.2)", borderRadius: 100, padding: "5px 14px", marginBottom: 20 }}>
@@ -427,7 +427,7 @@ export default function Home() {
                 <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 24, padding: 40 }}>
                   <div style={{ marginBottom: 36 }}>
                     <label style={{ fontSize: 12, fontWeight: 700, color: "#64748B", letterSpacing: "1px", textTransform: "uppercase", display: "block", marginBottom: 16 }}>Select Canvas (Room)</label>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: 12 }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(132px, 1fr))", gap: 12 }}>
                       {ROOMS.map(r => {
                         const isSel = form.room === r;
                         return (
@@ -476,9 +476,9 @@ export default function Home() {
                   )}
 
                   <button onClick={handleSubmit} disabled={loading}
-                    style={{ width: "100%", padding: "18px", background: "linear-gradient(135deg, #3B82F6, #6366F1)", border: "none", borderRadius: 16, color: "#fff", fontSize: 16, fontWeight: 800, cursor: "pointer", letterSpacing: "1px", boxShadow: "0 8px 30px rgba(59,130,246,0.4)" }}
-                    onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-2px)"; }}
-                    onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; }}>
+                    style={{ width: "100%", padding: "18px", background: "linear-gradient(135deg, #3B82F6, #6366F1)", border: "none", borderRadius: 16, color: "#fff", fontSize: 16, fontWeight: 800, cursor: "pointer", letterSpacing: "1px", boxShadow: "0 8px 30px rgba(59,130,246,0.4)", transition: "transform 0.2s ease, box-shadow 0.25s ease, filter 0.25s ease" }}
+                    onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 14px 36px rgba(59,130,246,0.48)"; e.currentTarget.style.filter = "brightness(1.06)"; }}
+                    onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 8px 30px rgba(59,130,246,0.4)"; e.currentTarget.style.filter = "brightness(1)"; }}>
                     INITIATE AI RENDER ✦
                   </button>
                 </div>

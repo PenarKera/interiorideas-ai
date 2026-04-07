@@ -1,4 +1,4 @@
-# ◈ InteriorIdeas.ai
+# InteriorIdeas.ai
 
 > AI-powered interior design platform built with Next.js and Groq AI
 
@@ -6,21 +6,25 @@
 ![Supabase](https://img.shields.io/badge/Supabase-Auth%20%2B%20DB-green?style=flat-square&logo=supabase)
 ![AI](https://img.shields.io/badge/AI-Groq%20LLaMA-blue?style=flat-square)
 
-## 🏠 About
+## Live Demo
 
-InteriorIdeas.ai generates professional interior design concepts in seconds. Users select their room type, design style, color palette, and budget — then AI creates a full design concept including furniture recommendations, color tips, and expert advice.
+https://interiorideas-ai.vercel.app
 
-## ✨ Features
+## About
 
-- **AI Design Generation** — Powered by Groq (LLaMA 3.3 70B) for fast, professional results
-- **User Authentication** — Secure signup/login with Supabase Auth
-- **Save Designs** — Every design saved to your personal database
-- **Design History** — Browse, search, and reload past designs
-- **Analytics Dashboard** — Track your design activity with charts
-- **Export PDF** — Print or save any design as PDF
-- **Protected Routes** — Dashboard only accessible when logged in
+InteriorIdeas.ai generates professional interior design concepts in seconds. Users select their room type, design style, color palette, and budget, then AI creates a full design concept including furniture recommendations, color tips, and expert advice.
 
-## 🛠 Tech Stack
+## Features
+
+- **AI Design Generation** - Powered by Groq (LLaMA 3.3 70B) for fast, professional results
+- **User Authentication** - Secure signup/login with Supabase Auth
+- **Save Designs** - Every design saved to your personal database
+- **Design History** - Browse, search, and reload past designs
+- **Analytics Dashboard** - Track your design activity with charts
+- **Export PDF** - Print or save any design as PDF
+- **Protected Routes** - Dashboard only accessible when logged in
+
+## Tech Stack
 
 | Layer | Technology |
 |-------|-----------|
@@ -30,7 +34,7 @@ InteriorIdeas.ai generates professional interior design concepts in seconds. Use
 | Database | Supabase (PostgreSQL) |
 | AI | Groq API (LLaMA 3.3 70B) |
 
-## 🚀 Getting Started
+## Getting Started
 
 ### 1. Clone the repository
 
@@ -92,36 +96,36 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-## 📁 Project Structure
+## Project Structure
 
-```
+```text
 interiorideas-ai/
-├── app/
-│   ├── api/
-│   │   └── generate/
-│   │       └── route.js      # AI generation endpoint
-│   ├── login/
-│   │   └── page.js           # Login & signup page
-│   ├── page.js               # Main dashboard
-│   └── layout.js             # Root layout with AuthProvider
-├── lib/
-│   ├── supabase.js           # Supabase client
-│   └── AuthContext.js        # Auth state management
-├── .env.local                # Environment variables (not committed)
-└── README.md
+|-- app/
+|   |-- api/
+|   |   `-- generate/
+|   |       `-- route.js      # AI generation endpoint
+|   |-- login/
+|   |   `-- page.js           # Login and signup page
+|   |-- page.js               # Main dashboard
+|   `-- layout.js             # Root layout with AuthProvider
+|-- lib/
+|   |-- supabase.js           # Supabase client
+|   `-- AuthContext.js        # Auth state management
+|-- .env.local                # Environment variables (not committed)
+`-- README.md
 ```
 
-## 🔐 Security
+## Security
 
-- API keys stored in `.env.local` — never exposed to the frontend
-- Row Level Security (RLS) enabled — users only see their own designs
+- API keys stored in `.env.local`
+- Row Level Security (RLS) enabled so users only see their own designs
 - Supabase handles password hashing and session management
 
-## 👨‍💻 Author
+## Author
 
-**Penar Kera** — Built as part of Advanced Programming course  
-University "Isa Boletini" Mitrovicë — 2026
+**Penar Kera** - Built as part of Advanced Programming course  
+University "Isa Boletini" Mitrovice - 2026
 
 ---
 
-*Built with ◈ InteriorIdeas.ai*
+*Built with InteriorIdeas.ai*
