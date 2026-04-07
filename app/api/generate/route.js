@@ -1,6 +1,14 @@
 export async function POST(req) {
   try {
     const { room, style, palette, budget, extra } = await req.json();
+    const groqApiKey = process.env.GROQ_API_KEY || process.env.NEXT_PUBLIC_GROQ_API_KEY;
+
+    if (!groqApiKey) {
+      return Response.json(
+        { success: false, error: "Groq API key is missing." },
+        { status: 500 }
+      );
+    }
 
     // --- AI Generation ---
     const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
@@ -8,7 +16,7 @@ export async function POST(req) {
       headers: {
         "Content-Type": "application/json",
         // Përdorim emrin e saktë që ke në Vercel
-        "Authorization": `Bearer ${process.env.NEXT_PUBLIC_GROQ_API_KEY}`,
+        "Authorization": `Bearer ${groqApiKey}`,
       },
       body: JSON.stringify({
         model: "llama-3.3-70b-versatile",

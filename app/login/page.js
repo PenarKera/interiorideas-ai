@@ -230,7 +230,7 @@ export default function LoginPage() {
 
           <div style={{ marginTop: 28, paddingTop: 20, borderTop: "1px solid rgba(255,255,255,0.05)", display: "flex", justifyContent: "center", gap: 6, alignItems: "center" }}>
             <span style={{ fontSize: 13 }}>🔒</span>
-            <span style={{ fontSize: 12, color: "#334155" }}>Enterprise-grade security guaranteed</span>
+            <span style={{ fontSize: 12, color: "#334155" }}>Secured by Supabase Auth</span>
           </div>
         </div>
       </section>
