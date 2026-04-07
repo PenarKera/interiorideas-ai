@@ -182,7 +182,7 @@ export default function Home() {
       <div style={{ position: "absolute", bottom: "-300px", right: "-100px", width: "800px", height: "800px", background: "radial-gradient(circle, rgba(99,102,241,0.04) 0%, transparent 70%)", borderRadius: "50%", zIndex: 0, pointerEvents: "none" }} />
 
       {/* SIDEBAR */}
-      <aside className="no-print" style={{ width: sidebarW, flexShrink: 0, background: "rgba(8,11,20,0.95)", borderRight: "1px solid rgba(255,255,255,0.05)", display: "flex", flexDirection: "column", position: "sticky", top: 0, height: "100vh", transition: "width 0.4s cubic-bezier(0.16, 1, 0.3, 1)", zIndex: 50 }}>
+      <aside className="no-print" style={{ width: sidebarW, flexShrink: 0, alignSelf: "stretch", minHeight: "100vh", background: "rgba(8,11,20,0.95)", borderRight: "1px solid rgba(255,255,255,0.05)", display: "flex", flexDirection: "column", transition: "width 0.4s cubic-bezier(0.16, 1, 0.3, 1)", zIndex: 50 }}>
         <div style={{ padding: sidebarCollapsed ? "28px 0" : "28px 24px", display: "flex", alignItems: "center", justifyContent: sidebarCollapsed ? "center" : "space-between", position: "relative", borderBottom: "1px solid rgba(255,255,255,0.03)" }}>
           {!sidebarCollapsed && (
             <div style={{ display: "flex", alignItems: "center", gap: 12, overflow: "hidden" }}>
