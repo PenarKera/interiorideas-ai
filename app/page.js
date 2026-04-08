@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
-import { supabase } from "../lib/supabase";
+import { supabase, supabaseConfigError } from "../lib/supabase";
 import { useRouter } from "next/navigation";
 
 export const dynamic = 'force-dynamic';
@@ -35,13 +35,35 @@ export default function Home() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const dropdownRef = useRef(null);
   const router = useRouter();
+  const authUnavailable = !supabase;
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session) router.push("/login");
-      else setUser(session.user);
-    });
-  }, []);
+    let active = true;
+
+    if (!supabase) {
+      setError(supabaseConfigError || "Authentication is currently unavailable.");
+      return undefined;
+    }
+
+    supabase.auth
+      .getSession()
+      .then(({ data: { session } }) => {
+        if (!active) return;
+        if (!session) router.push("/login");
+        else setUser(session.user);
+      })
+      .catch((sessionError) => {
+        console.error("Unable to restore session:", sessionError);
+        if (active) {
+          setError("We could not restore your session. Please sign in again.");
+          router.push("/login");
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [router, authUnavailable]);
 
   useEffect(() => {
     const handleClick = (e) => {
@@ -52,7 +74,7 @@ export default function Home() {
   }, []);
 
   const fetchHistory = async () => {
-    if (!user) return;
+    if (!user || !supabase) return;
     setHistoryLoading(true);
     const { data, error } = await supabase
       .from("designs")
@@ -60,6 +82,7 @@ export default function Home() {
       .eq("user_id", user.id)
       .order("created_at", { ascending: false });
     if (!error) setHistory(data || []);
+    else setError("Unable to load your saved designs right now.");
     setHistoryLoading(false);
   };
 
@@ -68,6 +91,10 @@ export default function Home() {
   }, [activeTab, user]);
 
   const handleLogout = async () => {
+    if (!supabase) {
+      setError(supabaseConfigError || "Authentication is currently unavailable.");
+      return;
+    }
     await supabase.auth.signOut();
     router.push("/login");
   };
@@ -97,7 +124,12 @@ export default function Home() {
   };
 
   const handleSave = async () => {
-    if (!result || !user) return;
+    if (!result || !user || !supabase) {
+      if (!supabase) {
+        setError(supabaseConfigError || "Saving is unavailable until Supabase is configured.");
+      }
+      return;
+    }
     setSaving(true);
     const { error } = await supabase.from("designs").insert({
       user_id: user.id,
@@ -125,6 +157,10 @@ export default function Home() {
   };
 
   const handleDeleteDesign = async (id) => {
+    if (!supabase) {
+      setError(supabaseConfigError || "Deleting is unavailable until Supabase is configured.");
+      return;
+    }
     await supabase.from("designs").delete().eq("id", id).eq("user_id", user?.id);
     setHistory(history.filter(d => d.id !== id));
   };
@@ -161,13 +197,35 @@ export default function Home() {
   };
 
   if (!user) return (
-    <div style={{ minHeight: "100vh", background: "#05070A", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 20 }}>
-      <div style={{ position: "relative", width: 44, height: 44 }}>
-        <div style={{ position: "absolute", width: "100%", height: "100%", border: "2px solid rgba(59,130,246,0.1)", borderRadius: "50%" }} />
-        <div style={{ position: "absolute", width: "100%", height: "100%", border: "2px solid transparent", borderTopColor: "#3B82F6", borderRadius: "50%", animation: "spin 1s linear infinite" }} />
-      </div>
-      <p style={{ color: "#64748B", fontSize: 13, letterSpacing: "2px", textTransform: "uppercase" }}>Initializing Workspace</p>
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+    <div style={{ minHeight: "100vh", background: "#05070A", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 20, padding: 24, textAlign: "center" }}>
+      {authUnavailable ? (
+        <>
+          <div style={{ width: 54, height: 54, borderRadius: 16, background: "linear-gradient(135deg, rgba(239,68,68,0.2), rgba(245,158,11,0.18))", border: "1px solid rgba(248,113,113,0.25)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, color: "#FCA5A5" }}>
+            !
+          </div>
+          <div style={{ maxWidth: 440, background: "rgba(15,23,42,0.7)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 20, padding: 24 }}>
+            <h1 style={{ fontSize: 26, color: "#fff", marginBottom: 10 }}>Authentication unavailable</h1>
+            <p style={{ color: "#94A3B8", lineHeight: 1.7, marginBottom: 18 }}>
+              {error || supabaseConfigError || "We could not initialize Supabase for this project."}
+            </p>
+            <button
+              onClick={() => router.push("/login")}
+              style={{ padding: "12px 20px", borderRadius: 12, border: "none", cursor: "pointer", fontWeight: 700, color: "#fff", background: "linear-gradient(135deg, #3B82F6, #6366F1)" }}
+            >
+              Go to Login
+            </button>
+          </div>
+        </>
+      ) : (
+        <>
+          <div style={{ position: "relative", width: 44, height: 44 }}>
+            <div style={{ position: "absolute", width: "100%", height: "100%", border: "2px solid rgba(59,130,246,0.1)", borderRadius: "50%" }} />
+            <div style={{ position: "absolute", width: "100%", height: "100%", border: "2px solid transparent", borderTopColor: "#3B82F6", borderRadius: "50%", animation: "spin 1s linear infinite" }} />
+          </div>
+          <p style={{ color: "#64748B", fontSize: 13, letterSpacing: "2px", textTransform: "uppercase" }}>Initializing Workspace</p>
+          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        </>
+      )}
     </div>
   );
 
