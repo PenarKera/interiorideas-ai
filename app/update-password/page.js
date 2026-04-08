@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { supabase, supabaseConfigError } from "../../lib/supabase";
 
 const REQUEST_TIMEOUT_MS = 15000;
+const MAX_PASSWORD_LENGTH = 128;
 
 function withTimeout(promise, message) {
   return Promise.race([
@@ -101,6 +102,11 @@ export default function UpdatePasswordPage() {
 
     if (newPassword.length < 6) {
       setError("Password must be at least 6 characters.");
+      return;
+    }
+
+    if (newPassword.length > MAX_PASSWORD_LENGTH) {
+      setError(`Password must stay under ${MAX_PASSWORD_LENGTH} characters.`);
       return;
     }
 
@@ -218,6 +224,7 @@ export default function UpdatePasswordPage() {
             type="password"
             placeholder="New password"
             value={newPassword}
+            maxLength={MAX_PASSWORD_LENGTH + 1}
             onChange={(event) => {
               setNewPassword(event.target.value);
               setError("");
@@ -239,6 +246,7 @@ export default function UpdatePasswordPage() {
             type="password"
             placeholder="Confirm password"
             value={confirmPassword}
+            maxLength={MAX_PASSWORD_LENGTH + 1}
             onChange={(event) => {
               setConfirmPassword(event.target.value);
               setError("");

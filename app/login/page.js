@@ -45,12 +45,16 @@ const TESTIMONIALS = [
 
 const SAFETY_CHECKS = [
   "Visible loading and error states",
+  "Too-long input blocked gracefully",
   "Offline detection before submit",
   "Retry button for failed requests",
   "Submit locked while request is running",
 ];
 
 const REQUEST_TIMEOUT_MS = 15000;
+const MAX_NAME_LENGTH = 80;
+const MAX_EMAIL_LENGTH = 120;
+const MAX_PASSWORD_LENGTH = 128;
 
 function withTimeout(promise, message) {
   return Promise.race([
@@ -181,6 +185,9 @@ export default function LoginPage() {
   };
 
   const validateForAuth = () => {
+    const trimmedName = name.trim();
+    const trimmedEmail = email.trim();
+
     if (!supabase) {
       setError(supabaseConfigError || "Supabase is not configured for this project.");
       return false;
@@ -191,13 +198,38 @@ export default function LoginPage() {
       return false;
     }
 
-    if (isSignup && name.trim().length < 2) {
+    if (isSignup && trimmedName.length < 2) {
       setError("Full name must be at least 2 characters.");
       return false;
     }
 
-    if (!isValidEmail(email)) {
+    if (isSignup && trimmedName.length > MAX_NAME_LENGTH) {
+      setError(`Full name must stay under ${MAX_NAME_LENGTH} characters.`);
+      return false;
+    }
+
+    if (!trimmedEmail) {
+      setError("Email address is required.");
+      return false;
+    }
+
+    if (trimmedEmail.length > MAX_EMAIL_LENGTH) {
+      setError(`Email must stay under ${MAX_EMAIL_LENGTH} characters.`);
+      return false;
+    }
+
+    if (!isValidEmail(trimmedEmail)) {
       setError("Enter a valid email address.");
+      return false;
+    }
+
+    if (!password.trim()) {
+      setError("Password is required.");
+      return false;
+    }
+
+    if (password.length > MAX_PASSWORD_LENGTH) {
+      setError(`Password must stay under ${MAX_PASSWORD_LENGTH} characters.`);
       return false;
     }
 
@@ -210,6 +242,8 @@ export default function LoginPage() {
   };
 
   const validateForReset = () => {
+    const trimmedEmail = email.trim();
+
     if (!supabase) {
       setError(supabaseConfigError || "Supabase is not configured for this project.");
       return false;
@@ -220,7 +254,17 @@ export default function LoginPage() {
       return false;
     }
 
-    if (!isValidEmail(email)) {
+    if (!trimmedEmail) {
+      setError("Email address is required.");
+      return false;
+    }
+
+    if (trimmedEmail.length > MAX_EMAIL_LENGTH) {
+      setError(`Email must stay under ${MAX_EMAIL_LENGTH} characters.`);
+      return false;
+    }
+
+    if (!isValidEmail(trimmedEmail)) {
       setError("Enter your email first so we know where to send the reset link.");
       return false;
     }
@@ -1003,6 +1047,7 @@ export default function LoginPage() {
                   type="text"
                   value={name}
                   placeholder="Your full name"
+                  maxLength={MAX_NAME_LENGTH + 1}
                   onChange={(event) => {
                     setName(event.target.value);
                     clearFeedback();
@@ -1020,6 +1065,7 @@ export default function LoginPage() {
                 type="email"
                 value={email}
                 placeholder="you@example.com"
+                maxLength={MAX_EMAIL_LENGTH + 1}
                 onChange={(event) => {
                   setEmail(event.target.value);
                   clearFeedback();
@@ -1046,6 +1092,7 @@ export default function LoginPage() {
                 type="password"
                 value={password}
                 placeholder={isSignup ? "Minimum 6 characters" : "Your password"}
+                maxLength={MAX_PASSWORD_LENGTH + 1}
                 onChange={(event) => {
                   setPassword(event.target.value);
                   clearFeedback();
