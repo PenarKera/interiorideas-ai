@@ -1,7 +1,12 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
-import { supabase } from "../../lib/supabase";
+import { supabase, supabaseConfigError } from "../../lib/supabase";
 import { useRouter } from "next/navigation";
+import {
+  getAuthErrorMessage,
+  getResetPasswordRedirectUrl,
+  validateAuthForm,
+} from "../../lib/auth-helpers";
 
 const ROTATING_WORDS = ["Living Room", "Bedroom", "Kitchen", "Home Office", "Dining Room", "Bathroom"];
 
@@ -25,13 +30,17 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [isSignup, setIsSignup] = useState(false);
   const [wordIndex, setWordIndex] = useState(0);
   const [wordVisible, setWordVisible] = useState(true);
   const [scrollY, setScrollY] = useState(0);
   const formRef = useRef(null);
   const router = useRouter();
+  const authUnavailable = !supabase;
+  const isBusy = loading || resetLoading;
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -52,37 +61,72 @@ export default function LoginPage() {
 
   const scrollToForm = () => formRef.current?.scrollIntoView({ behavior: "smooth" });
 
+  const clearMessages = () => {
+    setError("");
+    setSuccess("");
+  };
+
+  const switchMode = (nextIsSignup) => {
+    setIsSignup(nextIsSignup);
+    clearMessages();
+  };
+
   const validate = () => {
-    if (isSignup && name.trim().length < 2) { setError("Name must be at least 2 characters."); return false; }
-    if (!email.includes("@") || !email.includes(".")) { setError("Please enter a valid email."); return false; }
-    if (password.length < 6) { setError("Password must be at least 6 characters."); return false; }
+    const validationError = validateAuthForm({ isSignup, name, email, password });
+    if (validationError) {
+      setError(validationError);
+      return false;
+    }
     return true;
   };
 
-  const handleSubmit = async () => {
-    setError("");
+  const handleSubmit = async (event) => {
+    event?.preventDefault();
+    clearMessages();
+    if (!supabase) {
+      setError(supabaseConfigError || "Authentication is currently unavailable.");
+      return;
+    }
     if (!validate()) return;
     setLoading(true);
     try {
       if (isSignup) {
         const { error } = await supabase.auth.signUp({ email, password, options: { data: { full_name: name } } });
         if (error) throw error;
-        alert("✅ Check your email to confirm your account!");
+        setSuccess("Account created. Check your email to confirm it before signing in.");
+        setPassword("");
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         router.push("/");
       }
-    } catch (err) { setError(err.message); }
+    } catch (err) {
+      setError(getAuthErrorMessage(err, "Unable to continue with authentication right now."));
+    }
     finally { setLoading(false); }
   };
 
   const handleForgotPassword = async () => {
-    setError("");
+    clearMessages();
+    if (!supabase) {
+      setError(supabaseConfigError || "Authentication is currently unavailable.");
+      return;
+    }
     if (!email) { setError("Please enter your email address first."); return; }
-    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: "http://localhost:3000/update-password" });
-    if (error) setError(error.message);
-    else alert("✅ Reset link sent! Check your email inbox.");
+    if (!email.includes("@") || !email.includes(".")) { setError("Enter a valid email so we can send the reset link."); return; }
+    setResetLoading(true);
+    try {
+      const redirectTo = getResetPasswordRedirectUrl(
+        typeof window !== "undefined" ? window.location.origin : undefined
+      );
+      const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
+      if (error) throw error;
+      setSuccess("Reset link sent. Check your inbox and spam folder.");
+    } catch (err) {
+      setError(getAuthErrorMessage(err, "Unable to send the reset link right now."));
+    } finally {
+      setResetLoading(false);
+    }
   };
 
   return (
@@ -174,7 +218,7 @@ export default function LoginPage() {
             {["Sign In", "Sign Up"].map(tab => {
               const active = (tab === "Sign In" && !isSignup) || (tab === "Sign Up" && isSignup);
               return (
-                <button key={tab} onClick={() => { setIsSignup(tab === "Sign Up"); setError(""); }}
+                <button key={tab} type="button" onClick={() => switchMode(tab === "Sign Up")}
                   style={{ flex: 1, padding: "11px", border: "none", borderRadius: 9, background: active ? "linear-gradient(135deg, #3B82F6, #6366F1)" : "transparent", color: active ? "#fff" : "#64748B", fontSize: 14, fontWeight: active ? 700 : 500, cursor: "pointer", transition: "all 0.3s", boxShadow: active ? "0 4px 15px rgba(59,130,246,0.3)" : "none" }}>
                   {tab}
                 </button>
@@ -187,42 +231,44 @@ export default function LoginPage() {
             <p style={{ fontSize: 14, color: "#64748B" }}>{isSignup ? "Join the AI design revolution." : "Sign in to your studio."}</p>
           </div>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             {isSignup && (
               <div>
                 <label style={{ fontSize: 11, fontWeight: 700, color: "#475569", letterSpacing: "1px", textTransform: "uppercase", display: "block", marginBottom: 8 }}>Full Name</label>
-                <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Your full name"
+                <input type="text" value={name} onChange={e => { setName(e.target.value); clearMessages(); }} placeholder="Your full name"
                   style={{ width: "100%", padding: "13px 16px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: 11, color: "#fff", fontSize: 14, outline: "none", transition: "all 0.3s" }} />
               </div>
             )}
             <div>
               <label style={{ fontSize: 11, fontWeight: 700, color: "#475569", letterSpacing: "1px", textTransform: "uppercase", display: "block", marginBottom: 8 }}>Email Address</label>
-              <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="your@email.com"
+              <input type="email" value={email} onChange={e => { setEmail(e.target.value); clearMessages(); }} placeholder="your@email.com"
                 onKeyDown={e => e.key === "Enter" && handleSubmit()}
                 style={{ width: "100%", padding: "13px 16px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: 11, color: "#fff", fontSize: 14, outline: "none", transition: "all 0.3s" }} />
             </div>
             <div>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
                 <label style={{ fontSize: 11, fontWeight: 700, color: "#475569", letterSpacing: "1px", textTransform: "uppercase" }}>Password</label>
-                {!isSignup && <button onClick={handleForgotPassword} style={{ background: "none", border: "none", color: "#3B82F6", fontSize: 12, cursor: "pointer", fontWeight: 600 }}>Forgot?</button>}
+                {!isSignup && <button type="button" onClick={handleForgotPassword} disabled={isBusy || authUnavailable} style={{ background: "none", border: "none", color: isBusy || authUnavailable ? "#475569" : "#3B82F6", fontSize: 12, cursor: isBusy || authUnavailable ? "not-allowed" : "pointer", fontWeight: 600 }}>{resetLoading ? "Sending..." : "Forgot?"}</button>}
               </div>
-              <input type="password" value={password} onChange={e => setPassword(e.target.value)}
+              <input type="password" value={password} onChange={e => { setPassword(e.target.value); clearMessages(); }}
                 placeholder={isSignup ? "Min. 6 characters" : "Your password"}
                 onKeyDown={e => e.key === "Enter" && handleSubmit()}
                 style={{ width: "100%", padding: "13px 16px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: 11, color: "#fff", fontSize: 14, outline: "none", transition: "all 0.3s" }} />
             </div>
-          </div>
+          </form>
 
           {error && <div style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: 10, padding: "11px 14px", color: "#FCA5A5", fontSize: 13, marginTop: 14 }}>⚠ {error}</div>}
+          {success && <div style={{ background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.2)", borderRadius: 10, padding: "11px 14px", color: "#86EFAC", fontSize: 13, marginTop: 14 }}>{success}</div>}
+          {authUnavailable && !error && <div style={{ background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.22)", borderRadius: 10, padding: "11px 14px", color: "#FCD34D", fontSize: 13, marginTop: 14 }}>{supabaseConfigError}</div>}
 
-          <button onClick={handleSubmit} disabled={loading} className="btn-primary"
-            style={{ width: "100%", marginTop: 22, padding: "15px", background: loading ? "rgba(59,130,246,0.4)" : "linear-gradient(135deg, #3B82F6, #6366F1)", border: "none", borderRadius: 12, color: "#fff", fontSize: 15, fontWeight: 800, cursor: loading ? "not-allowed" : "pointer", boxShadow: loading ? "none" : "0 8px 25px rgba(59,130,246,0.35)" }}>
+          <button type="button" onClick={handleSubmit} disabled={isBusy || authUnavailable} className="btn-primary"
+            style={{ width: "100%", marginTop: 22, padding: "15px", background: isBusy || authUnavailable ? "rgba(59,130,246,0.4)" : "linear-gradient(135deg, #3B82F6, #6366F1)", border: "none", borderRadius: 12, color: "#fff", fontSize: 15, fontWeight: 800, cursor: isBusy || authUnavailable ? "not-allowed" : "pointer", boxShadow: isBusy || authUnavailable ? "none" : "0 8px 25px rgba(59,130,246,0.35)" }}>
             {loading ? "Processing..." : isSignup ? "Create Account →" : "Sign In to Studio →"}
           </button>
 
           <p style={{ textAlign: "center", marginTop: 22, fontSize: 14, color: "#475569" }}>
             {isSignup ? "Already have an account? " : "Don't have an account? "}
-            <span onClick={() => { setIsSignup(!isSignup); setError(""); }} style={{ color: "#3B82F6", cursor: "pointer", fontWeight: 700 }}>
+            <span onClick={() => switchMode(!isSignup)} style={{ color: "#3B82F6", cursor: "pointer", fontWeight: 700 }}>
               {isSignup ? "Sign In" : "Sign Up Free"}
             </span>
           </p>

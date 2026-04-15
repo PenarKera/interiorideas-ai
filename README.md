@@ -1,67 +1,66 @@
 # InteriorIdeas.ai
 
-> AI-powered interior design platform built with Next.js and Groq AI
+AI-powered interior design studio built with Next.js, Supabase, Groq, and Unsplash.
 
-![Next.js](https://img.shields.io/badge/Next.js-14-black?style=flat-square&logo=next.js)
-![Supabase](https://img.shields.io/badge/Supabase-Auth%20%2B%20DB-green?style=flat-square&logo=supabase)
-![AI](https://img.shields.io/badge/AI-Groq%20LLaMA-blue?style=flat-square)
+## What this project does
 
-## Live Demo
+InteriorIdeas.ai helps users generate interior design concepts for different room types. A signed-in user can:
+
+- choose a room, style, palette, budget, and extra notes
+- generate an AI design concept
+- view furniture suggestions, color tips, and inspiration photos
+- save designs to Supabase
+- reopen saved work from the gallery
+- review simple usage analytics
+- export a design as PDF with the browser print flow
+
+## Live link
 
 https://interiorideas-ai.vercel.app
 
-## About
+## Run locally
 
-InteriorIdeas.ai generates professional interior design concepts in seconds. Users select their room type, design style, color palette, and budget, then AI creates a full design concept including furniture recommendations, color tips, and expert advice.
-
-## Features
-
-- **AI Design Generation** - Powered by Groq (LLaMA 3.3 70B) for fast, professional results
-- **User Authentication** - Secure signup/login with Supabase Auth
-- **Save Designs** - Every design saved to your personal database
-- **Design History** - Browse, search, and reload past designs
-- **Analytics Dashboard** - Track your design activity with charts
-- **Export PDF** - Print or save any design as PDF
-- **Protected Routes** - Dashboard only accessible when logged in
-
-## Tech Stack
-
-| Layer | Technology |
-|-------|-----------|
-| Frontend | Next.js 14, React |
-| Styling | Inline CSS (custom dark theme) |
-| Auth | Supabase Auth |
-| Database | Supabase (PostgreSQL) |
-| AI | Groq API (LLaMA 3.3 70B) |
-
-## Getting Started
-
-### 1. Clone the repository
+1. Clone the repo:
 
 ```bash
 git clone https://github.com/PenarKera/interiorideas-ai.git
 cd interiorideas-ai
 ```
 
-### 2. Install dependencies
+2. Install dependencies:
 
 ```bash
 npm install
 ```
 
-### 3. Set up environment variables
-
-Create a `.env.local` file in the root directory:
+3. Create `.env.local` in the project root:
 
 ```env
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 GROQ_API_KEY=your_groq_api_key
+UNSPLASH_ACCESS_KEY=your_unsplash_access_key
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ```
 
-### 4. Set up Supabase database
+4. Start the dev server:
 
-Run this SQL in your Supabase SQL Editor:
+```bash
+npm run dev
+```
+
+5. Open `http://localhost:3000`
+
+## Environment notes
+
+- `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are required for auth and database access.
+- `GROQ_API_KEY` is required for AI design generation.
+- `UNSPLASH_ACCESS_KEY` is optional but recommended for inspiration photos.
+- `NEXT_PUBLIC_SITE_URL` is optional locally, but useful as a fallback base URL for auth redirects.
+
+## Supabase setup
+
+Run this SQL in the Supabase SQL Editor:
 
 ```sql
 CREATE TABLE designs (
@@ -77,6 +76,7 @@ CREATE TABLE designs (
   furniture JSONB,
   color_tips JSONB,
   pro_tip TEXT,
+  photos JSONB,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -88,44 +88,37 @@ USING (auth.uid() = user_id)
 WITH CHECK (auth.uid() = user_id);
 ```
 
-### 5. Run the development server
+## Main stack
 
-```bash
-npm run dev
-```
+- Next.js 14
+- React 18
+- Supabase Auth + PostgreSQL
+- Groq API for design generation
+- Unsplash for reference photos
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
-
-## Project Structure
+## Project structure
 
 ```text
-interiorideas-ai/
-|-- app/
-|   |-- api/
-|   |   `-- generate/
-|   |       `-- route.js      # AI generation endpoint
-|   |-- login/
-|   |   `-- page.js           # Login and signup page
-|   |-- page.js               # Main dashboard
-|   `-- layout.js             # Root layout with AuthProvider
-|-- lib/
-|   |-- supabase.js           # Supabase client
-|   `-- AuthContext.js        # Auth state management
-|-- .env.local                # Environment variables (not committed)
-`-- README.md
+app/
+|-- api/generate/route.js
+|-- login/page.js
+|-- update-password/page.js
+|-- page.js
+`-- layout.js
+lib/
+|-- AuthContext.js
+|-- auth-helpers.js
+`-- supabase.js
 ```
 
-## Security
+## Notes for demo
 
-- API keys stored in `.env.local`
-- Row Level Security (RLS) enabled so users only see their own designs
-- Supabase handles password hashing and session management
+- Authentication protects the main dashboard.
+- Password reset redirects now use the current site origin instead of a hardcoded localhost URL.
+- Login and reset flows show inline feedback for loading, success, and errors.
 
 ## Author
 
-**Penar Kera** - Built as part of Advanced Programming course  
+Penar Kera  
+Advanced Programming course  
 University "Isa Boletini" Mitrovice - 2026
-
----
-
-*Built with InteriorIdeas.ai*

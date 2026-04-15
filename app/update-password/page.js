@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase, supabaseConfigError } from "../../lib/supabase";
+import { getAuthErrorMessage } from "../../lib/auth-helpers";
 
 const REQUEST_TIMEOUT_MS = 15000;
 const MAX_PASSWORD_LENGTH = 128;
@@ -74,7 +75,12 @@ export default function UpdatePasswordPage() {
       } catch (requestError) {
         console.error("Password reset session setup failed:", requestError);
         if (active) {
-          setError(requestError.message || "Unable to verify your reset session.");
+          setError(
+            getAuthErrorMessage(
+              requestError,
+              "Unable to verify your reset session."
+            )
+          );
         }
       }
     };
@@ -131,7 +137,12 @@ export default function UpdatePasswordPage() {
       setTimeout(() => router.push("/login"), 1200);
     } catch (requestError) {
       console.error("Password update failed:", requestError);
-      setError(requestError.message || "Unable to update your password right now.");
+      setError(
+        getAuthErrorMessage(
+          requestError,
+          "Unable to update your password right now."
+        )
+      );
     } finally {
       setLoading(false);
     }
