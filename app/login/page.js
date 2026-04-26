@@ -346,7 +346,7 @@ export default function LoginPage() {
               <div style={{ display: "flex", gap: 2, marginBottom: 20 }}>
                 {[1,2,3,4,5].map(s => <span key={s} style={{ color: "#F59E0B", fontSize: 16 }}>★</span>)}
               </div>
-              <p style={{ fontSize: 15, color: "#94A3B8", lineHeight: 1.75, marginBottom: 28, fontStyle: "italic" }}>"{t.text}"</p>
+              <p style={{ fontSize: 15, color: "#94A3B8", lineHeight: 1.75, marginBottom: 28, fontStyle: "italic" }}>&ldquo;{t.text}&rdquo;</p>
               <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
                 <div style={{ width: 42, height: 42, background: "linear-gradient(135deg, #3B82F6, #6366F1)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 800 }}>{t.avatar}</div>
                 <div>

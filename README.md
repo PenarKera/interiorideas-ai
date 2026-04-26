@@ -117,6 +117,24 @@ lib/
 - Password reset redirects now use the current site origin instead of a hardcoded localhost URL.
 - Login and reset flows show inline feedback for loading, success, and errors.
 
+## Demo readiness
+
+Checked on April 26, 2026:
+
+- Live URL: `https://interiorideas-ai.vercel.app`
+- Live deployment responded with `HTTP 200` for `/` and `/login`
+- Local production build completed successfully with `npm run build`
+- ESLint verification runs with `npm run lint`; current warnings are non-blocking and relate to font loading and image optimization
+- Demo plan is documented in [docs/demo-plan.md](docs/demo-plan.md)
+
+Recommended demo path:
+
+1. Open the live login page.
+2. Sign in and show the protected dashboard.
+3. Generate one design from the Studio tab.
+4. Save it, open it again from Gallery, and briefly show Analytics.
+5. Finish with PDF export or the saved result view.
+
 ## Author
 
 Penar Kera  

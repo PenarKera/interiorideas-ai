@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase, supabaseConfigError } from "../lib/supabase";
 import { useRouter } from "next/navigation";
 
@@ -73,7 +73,7 @@ export default function Home() {
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
-  const fetchHistory = async () => {
+  const fetchHistory = useCallback(async () => {
     if (!user || !supabase) return;
     setHistoryLoading(true);
     const { data, error } = await supabase
@@ -84,11 +84,11 @@ export default function Home() {
     if (!error) setHistory(data || []);
     else setError("Unable to load your saved designs right now.");
     setHistoryLoading(false);
-  };
+  }, [user]);
 
   useEffect(() => {
     if ((activeTab === "history" || activeTab === "stats") && user) fetchHistory();
-  }, [activeTab, user]);
+  }, [activeTab, user, fetchHistory]);
 
   const handleLogout = async () => {
     if (!supabase) {
@@ -778,8 +778,8 @@ export default function Home() {
                       {result.pro_tip && (
                         <div style={{ background: "linear-gradient(135deg, rgba(59,130,246,0.1), rgba(99,102,241,0.05))", border: "1px solid rgba(99,102,241,0.2)", borderRadius: 20, padding: "32px 36px", position: "relative", overflow: "hidden" }}>
                           <div style={{ position: "absolute", top: 0, left: 0, width: "4px", height: "100%", background: "linear-gradient(to bottom, #3B82F6, #6366F1)" }} />
-                          <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "2px", color: "#60A5FA", marginBottom: 12, textTransform: "uppercase" }}>Director's Insight</div>
-                          <p style={{ fontSize: 16, color: "#E2E8F0", fontStyle: "italic", lineHeight: 1.8, margin: 0 }}>"{result.pro_tip}"</p>
+                          <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "2px", color: "#60A5FA", marginBottom: 12, textTransform: "uppercase" }}>Director&apos;s Insight</div>
+                          <p style={{ fontSize: 16, color: "#E2E8F0", fontStyle: "italic", lineHeight: 1.8, margin: 0 }}>&ldquo;{result.pro_tip}&rdquo;</p>
                         </div>
                       )}
                     </div>
