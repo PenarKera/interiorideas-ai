@@ -37,10 +37,13 @@ export default function LoginPage() {
   const [wordIndex, setWordIndex] = useState(0);
   const [wordVisible, setWordVisible] = useState(true);
   const [scrollY, setScrollY] = useState(0);
+  const [viewportWidth, setViewportWidth] = useState(1280);
   const formRef = useRef(null);
   const router = useRouter();
   const authUnavailable = !supabase;
   const isBusy = loading || resetLoading;
+  const isMobile = viewportWidth < 768;
+  const isTablet = viewportWidth >= 768 && viewportWidth < 1100;
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -57,6 +60,18 @@ export default function LoginPage() {
     const onScroll = () => setScrollY(window.scrollY);
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return undefined;
+    }
+
+    const onResize = () => setViewportWidth(window.innerWidth);
+    onResize();
+    window.addEventListener("resize", onResize);
+
+    return () => window.removeEventListener("resize", onResize);
   }, []);
 
   const scrollToForm = () => formRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -150,37 +165,37 @@ export default function LoginPage() {
       `}</style>
 
       {/* ── STICKY NAV ── */}
-      <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, padding: "0 60px", height: 70, display: "flex", alignItems: "center", justifyContent: "space-between", background: scrollY > 50 ? "rgba(5,7,10,0.9)" : "transparent", backdropFilter: scrollY > 50 ? "blur(20px)" : "none", borderBottom: scrollY > 50 ? "1px solid rgba(255,255,255,0.05)" : "none", transition: "all 0.4s" }}>
+      <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, padding: isMobile ? "0 18px" : isTablet ? "0 28px" : "0 60px", height: isMobile ? 64 : 70, display: "flex", alignItems: "center", justifyContent: "space-between", background: scrollY > 50 ? "rgba(5,7,10,0.9)" : "transparent", backdropFilter: scrollY > 50 ? "blur(20px)" : "none", borderBottom: scrollY > 50 ? "1px solid rgba(255,255,255,0.05)" : "none", transition: "all 0.4s" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <div style={{ width: 36, height: 36, background: "linear-gradient(135deg, #3B82F6, #6366F1)", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 800, boxShadow: "0 0 20px rgba(59,130,246,0.4)" }}>◈</div>
-          <span style={{ fontSize: 19, fontWeight: 700, letterSpacing: "-0.5px" }}>InteriorIdeas<span style={{ color: "#3B82F6" }}>.ai</span></span>
+          <span style={{ fontSize: isMobile ? 17 : 19, fontWeight: 700, letterSpacing: "-0.5px" }}>InteriorIdeas<span style={{ color: "#3B82F6" }}>.ai</span></span>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 32 }}>
-          <span onClick={() => document.getElementById("features")?.scrollIntoView({behavior:"smooth"})} style={{ fontSize: 14, color: "#64748B", cursor: "pointer", transition: "color 0.2s" }} onMouseEnter={e=>e.target.style.color="#fff"} onMouseLeave={e=>e.target.style.color="#64748B"}>Features</span>
-          <span onClick={() => document.getElementById("testimonials")?.scrollIntoView({behavior:"smooth"})} style={{ fontSize: 14, color: "#64748B", cursor: "pointer", transition: "color 0.2s" }} onMouseEnter={e=>e.target.style.color="#fff"} onMouseLeave={e=>e.target.style.color="#64748B"}>Reviews</span>
-          <button onClick={scrollToForm} style={{ padding: "9px 22px", background: "linear-gradient(135deg, #3B82F6, #6366F1)", border: "none", borderRadius: 10, color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 15px rgba(59,130,246,0.3)" }} className="btn-primary">Get Started</button>
+        <div style={{ display: "flex", alignItems: "center", gap: isMobile ? 12 : 32 }}>
+          {!isMobile && <span onClick={() => document.getElementById("features")?.scrollIntoView({behavior:"smooth"})} style={{ fontSize: 14, color: "#64748B", cursor: "pointer", transition: "color 0.2s" }} onMouseEnter={e=>e.target.style.color="#fff"} onMouseLeave={e=>e.target.style.color="#64748B"}>Features</span>}
+          {!isMobile && <span onClick={() => document.getElementById("testimonials")?.scrollIntoView({behavior:"smooth"})} style={{ fontSize: 14, color: "#64748B", cursor: "pointer", transition: "color 0.2s" }} onMouseEnter={e=>e.target.style.color="#fff"} onMouseLeave={e=>e.target.style.color="#64748B"}>Reviews</span>}
+          <button onClick={scrollToForm} style={{ padding: isMobile ? "8px 14px" : "9px 22px", background: "linear-gradient(135deg, #3B82F6, #6366F1)", border: "none", borderRadius: 10, color: "#fff", fontSize: isMobile ? 13 : 14, fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 15px rgba(59,130,246,0.3)" }} className="btn-primary">{isMobile ? "Start" : "Get Started"}</button>
         </div>
       </nav>
 
       {/* ── HERO SECTION ── */}
-      <section style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "100px 60px 60px", position: "relative", overflow: "hidden" }}>
+      <section style={{ minHeight: "100vh", display: "flex", flexDirection: isTablet ? "column" : "row", alignItems: "center", justifyContent: "space-between", gap: isTablet ? 36 : 24, padding: isMobile ? "92px 18px 40px" : isTablet ? "100px 28px 56px" : "100px 60px 60px", position: "relative", overflow: "hidden" }}>
         
         {/* Background orbs */}
         <div style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 0 }}>
-          <div style={{ position: "absolute", top: "8%", left: "10%", width: 700, height: 700, borderRadius: "50%", background: "radial-gradient(circle, rgba(59,130,246,0.1) 0%, transparent 70%)", animation: "floatOrb1 9s ease-in-out infinite" }} />
-          <div style={{ position: "absolute", bottom: "0%", left: "25%", width: 500, height: 500, borderRadius: "50%", background: "radial-gradient(circle, rgba(99,102,241,0.08) 0%, transparent 70%)", animation: "floatOrb2 11s ease-in-out infinite" }} />
-          <div style={{ position: "absolute", top: "50%", right: "35%", width: 300, height: 300, borderRadius: "50%", background: "radial-gradient(circle, rgba(139,92,246,0.07) 0%, transparent 70%)", animation: "floatOrb3 7s ease-in-out infinite" }} />
+          <div style={{ position: "absolute", top: "8%", left: "10%", width: isMobile ? 320 : 700, height: isMobile ? 320 : 700, borderRadius: "50%", background: "radial-gradient(circle, rgba(59,130,246,0.1) 0%, transparent 70%)", animation: "floatOrb1 9s ease-in-out infinite" }} />
+          <div style={{ position: "absolute", bottom: "0%", left: "25%", width: isMobile ? 240 : 500, height: isMobile ? 240 : 500, borderRadius: "50%", background: "radial-gradient(circle, rgba(99,102,241,0.08) 0%, transparent 70%)", animation: "floatOrb2 11s ease-in-out infinite" }} />
+          <div style={{ position: "absolute", top: "50%", right: "35%", width: isMobile ? 160 : 300, height: isMobile ? 160 : 300, borderRadius: "50%", background: "radial-gradient(circle, rgba(139,92,246,0.07) 0%, transparent 70%)", animation: "floatOrb3 7s ease-in-out infinite" }} />
           <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px)", backgroundSize: "60px 60px" }} />
         </div>
 
         {/* Left — Hero text */}
-        <div style={{ flex: 1, maxWidth: 620, position: "relative", zIndex: 10, animation: "fadeUp 0.8s ease" }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(59,130,246,0.08)", border: "1px solid rgba(59,130,246,0.2)", borderRadius: 100, padding: "6px 16px", marginBottom: 32 }}>
+        <div style={{ flex: 1, maxWidth: isTablet ? "100%" : 620, width: "100%", position: "relative", zIndex: 10, animation: "fadeUp 0.8s ease", textAlign: isTablet ? "center" : "left" }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(59,130,246,0.08)", border: "1px solid rgba(59,130,246,0.2)", borderRadius: 100, padding: isMobile ? "6px 12px" : "6px 16px", marginBottom: isMobile ? 24 : 32 }}>
             <div style={{ width: 7, height: 7, background: "#3B82F6", borderRadius: "50%", animation: "pulse 2s infinite" }} />
             <span style={{ fontSize: 11, color: "#60A5FA", fontWeight: 700, letterSpacing: "1.5px", textTransform: "uppercase" }}>AI-Powered Design Studio</span>
           </div>
 
-          <h1 style={{ fontSize: 68, fontWeight: 800, lineHeight: 1.05, letterSpacing: "-2.5px", marginBottom: 28 }}>
+          <h1 style={{ fontSize: isMobile ? 38 : isTablet ? 52 : 68, fontWeight: 800, lineHeight: 1.05, letterSpacing: isMobile ? "-1.2px" : "-2.5px", marginBottom: isMobile ? 20 : 28 }}>
             Design your<br />perfect{" "}
             <span style={{ color: "#3B82F6", opacity: wordVisible ? 1 : 0, transform: wordVisible ? "translateY(0)" : "translateY(-14px)", display: "inline-block", transition: "all 0.4s cubic-bezier(0.16,1,0.3,1)", minWidth: 10 }}>
               {ROTATING_WORDS[wordIndex]}
@@ -188,12 +203,12 @@ export default function LoginPage() {
             <br />with AI.
           </h1>
 
-          <p style={{ fontSize: 18, color: "#64748B", lineHeight: 1.8, marginBottom: 48, maxWidth: 480 }}>
+          <p style={{ fontSize: isMobile ? 16 : 18, color: "#64748B", lineHeight: 1.8, marginBottom: isMobile ? 28 : 48, maxWidth: 480, marginLeft: isTablet ? "auto" : 0, marginRight: isTablet ? "auto" : 0 }}>
             Generate professional interior design concepts, furniture recommendations, and color palettes — personalized by AI in seconds.
           </p>
 
-          <div style={{ display: "flex", gap: 16, alignItems: "center", marginBottom: 56 }}>
-            <button onClick={scrollToForm} className="btn-primary" style={{ padding: "16px 36px", background: "linear-gradient(135deg, #3B82F6, #6366F1)", border: "none", borderRadius: 14, color: "#fff", fontSize: 16, fontWeight: 800, cursor: "pointer", boxShadow: "0 8px 30px rgba(59,130,246,0.35)", letterSpacing: "0.3px" }}>
+          <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", gap: 16, alignItems: "center", justifyContent: isTablet ? "center" : "flex-start", marginBottom: isMobile ? 32 : 56 }}>
+            <button onClick={scrollToForm} className="btn-primary" style={{ width: isMobile ? "100%" : "auto", padding: isMobile ? "15px 20px" : "16px 36px", background: "linear-gradient(135deg, #3B82F6, #6366F1)", border: "none", borderRadius: 14, color: "#fff", fontSize: 16, fontWeight: 800, cursor: "pointer", boxShadow: "0 8px 30px rgba(59,130,246,0.35)", letterSpacing: "0.3px" }}>
               Start Designing Free →
             </button>
             <span style={{ fontSize: 14, color: "#475569" }}>No credit card required</span>
@@ -208,7 +223,7 @@ export default function LoginPage() {
         </div>
 
         {/* Right — Login form */}
-        <div ref={formRef} style={{ width: 460, background: "rgba(8,11,20,0.85)", backdropFilter: "blur(24px)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 24, padding: "44px 48px", position: "relative", zIndex: 10, boxShadow: "0 40px 80px rgba(0,0,0,0.5)" }}>
+        <div ref={formRef} style={{ width: "100%", maxWidth: isMobile ? "100%" : 460, background: "rgba(8,11,20,0.85)", backdropFilter: "blur(24px)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 24, padding: isMobile ? "28px 20px" : isTablet ? "36px 32px" : "44px 48px", position: "relative", zIndex: 10, boxShadow: "0 40px 80px rgba(0,0,0,0.5)" }}>
           
           {/* Accent line */}
           <div style={{ position: "absolute", top: 0, left: 40, right: 40, height: 2, background: "linear-gradient(90deg, transparent, #3B82F6, #6366F1, transparent)", borderRadius: 2 }} />
@@ -281,8 +296,8 @@ export default function LoginPage() {
       </section>
 
       {/* ── STATS BAR ── */}
-      <section style={{ background: "rgba(255,255,255,0.02)", borderTop: "1px solid rgba(255,255,255,0.05)", borderBottom: "1px solid rgba(255,255,255,0.05)", padding: "40px 60px" }}>
-        <div style={{ display: "flex", justifyContent: "center", gap: 100, flexWrap: "wrap" }}>
+      <section style={{ background: "rgba(255,255,255,0.02)", borderTop: "1px solid rgba(255,255,255,0.05)", borderBottom: "1px solid rgba(255,255,255,0.05)", padding: isMobile ? "28px 18px" : isTablet ? "32px 28px" : "40px 60px" }}>
+        <div style={{ display: "flex", justifyContent: "center", gap: isMobile ? 28 : 100, flexWrap: "wrap" }}>
           {[["500+", "Designs Generated"], ["98%", "Satisfaction Rate"], ["6", "Room Types"], ["50+", "Design Styles"]].map(([num, label]) => (
             <div key={label} style={{ textAlign: "center" }}>
               <div style={{ fontSize: 36, fontWeight: 800, color: "#fff", letterSpacing: "-1.5px", background: "linear-gradient(135deg, #3B82F6, #6366F1)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>{num}</div>
@@ -293,13 +308,13 @@ export default function LoginPage() {
       </section>
 
       {/* ── FEATURES SECTION ── */}
-      <section id="features" style={{ padding: "120px 60px" }}>
+      <section id="features" style={{ padding: isMobile ? "64px 18px" : isTablet ? "84px 28px" : "120px 60px" }}>
         <div style={{ textAlign: "center", marginBottom: 72 }}>
           <div style={{ display: "inline-block", background: "rgba(59,130,246,0.08)", border: "1px solid rgba(59,130,246,0.2)", borderRadius: 100, padding: "6px 16px", fontSize: 11, color: "#60A5FA", fontWeight: 700, letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: 20 }}>Features</div>
-          <h2 style={{ fontSize: 48, fontWeight: 800, color: "#fff", letterSpacing: "-2px", marginBottom: 16 }}>Everything you need to<br /><span style={{ color: "#3B82F6" }}>design perfectly.</span></h2>
-          <p style={{ fontSize: 18, color: "#64748B", maxWidth: 500, margin: "0 auto" }}>One platform for all your interior design needs, powered by advanced AI.</p>
+          <h2 style={{ fontSize: isMobile ? 34 : 48, fontWeight: 800, color: "#fff", letterSpacing: isMobile ? "-1px" : "-2px", marginBottom: 16 }}>Everything you need to<br /><span style={{ color: "#3B82F6" }}>design perfectly.</span></h2>
+          <p style={{ fontSize: isMobile ? 16 : 18, color: "#64748B", maxWidth: 500, margin: "0 auto" }}>One platform for all your interior design needs, powered by advanced AI.</p>
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 24, maxWidth: 1100, margin: "0 auto" }}>
+        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : isTablet ? "1fr 1fr" : "repeat(3, 1fr)", gap: 24, maxWidth: 1100, margin: "0 auto" }}>
           {FEATURES.map((f, i) => (
             <div key={i} className="card-hover" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 20, padding: "36px 32px" }}>
               <div style={{ fontSize: 36, marginBottom: 20, background: "rgba(59,130,246,0.08)", width: 64, height: 64, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 16, border: "1px solid rgba(59,130,246,0.12)" }}>{f.icon}</div>
@@ -311,36 +326,36 @@ export default function LoginPage() {
       </section>
 
       {/* ── HOW IT WORKS ── */}
-      <section style={{ padding: "80px 60px 120px", background: "rgba(255,255,255,0.01)" }}>
+      <section style={{ padding: isMobile ? "56px 18px 72px" : isTablet ? "68px 28px 92px" : "80px 60px 120px", background: "rgba(255,255,255,0.01)" }}>
         <div style={{ textAlign: "center", marginBottom: 72 }}>
           <div style={{ display: "inline-block", background: "rgba(99,102,241,0.08)", border: "1px solid rgba(99,102,241,0.2)", borderRadius: 100, padding: "6px 16px", fontSize: 11, color: "#818CF8", fontWeight: 700, letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: 20 }}>Process</div>
-          <h2 style={{ fontSize: 48, fontWeight: 800, color: "#fff", letterSpacing: "-2px" }}>How it <span style={{ color: "#6366F1" }}>works.</span></h2>
+          <h2 style={{ fontSize: isMobile ? 34 : 48, fontWeight: 800, color: "#fff", letterSpacing: isMobile ? "-1px" : "-2px" }}>How it <span style={{ color: "#6366F1" }}>works.</span></h2>
         </div>
-        <div style={{ display: "flex", justifyContent: "center", gap: 0, maxWidth: 900, margin: "0 auto", alignItems: "flex-start" }}>
+        <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", justifyContent: "center", gap: isMobile ? 28 : 0, maxWidth: 900, margin: "0 auto", alignItems: "flex-start" }}>
           {[
             { step: "01", title: "Configure", desc: "Choose your room type, design style, color palette, and budget." },
             { step: "02", title: "Generate", desc: "Our AI processes your preferences and crafts a full design concept." },
             { step: "03", title: "Save & Export", desc: "Save to your gallery, export as PDF, or start a new design." },
           ].map((s, i) => (
-            <div key={i} style={{ display: "flex", alignItems: "flex-start", flex: 1 }}>
+            <div key={i} style={{ display: "flex", flexDirection: isMobile ? "column" : "row", alignItems: "flex-start", flex: 1 }}>
               <div style={{ textAlign: "center", flex: 1 }}>
                 <div style={{ width: 60, height: 60, background: "linear-gradient(135deg, rgba(59,130,246,0.15), rgba(99,102,241,0.15))", border: "1px solid rgba(99,102,241,0.3)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 800, color: "#818CF8", margin: "0 auto 20px" }}>{s.step}</div>
                 <h3 style={{ fontSize: 20, fontWeight: 700, color: "#fff", marginBottom: 12 }}>{s.title}</h3>
                 <p style={{ fontSize: 14, color: "#64748B", lineHeight: 1.7, maxWidth: 220, margin: "0 auto" }}>{s.desc}</p>
               </div>
-              {i < 2 && <div style={{ width: 80, height: 1, background: "linear-gradient(90deg, rgba(99,102,241,0.3), transparent)", marginTop: 30, flexShrink: 0 }} />}
+              {!isMobile && i < 2 && <div style={{ width: 80, height: 1, background: "linear-gradient(90deg, rgba(99,102,241,0.3), transparent)", marginTop: 30, flexShrink: 0 }} />}
             </div>
           ))}
         </div>
       </section>
 
       {/* ── TESTIMONIALS ── */}
-      <section id="testimonials" style={{ padding: "80px 60px 120px" }}>
+      <section id="testimonials" style={{ padding: isMobile ? "56px 18px 72px" : isTablet ? "68px 28px 92px" : "80px 60px 120px" }}>
         <div style={{ textAlign: "center", marginBottom: 72 }}>
           <div style={{ display: "inline-block", background: "rgba(59,130,246,0.08)", border: "1px solid rgba(59,130,246,0.2)", borderRadius: 100, padding: "6px 16px", fontSize: 11, color: "#60A5FA", fontWeight: 700, letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: 20 }}>Reviews</div>
-          <h2 style={{ fontSize: 48, fontWeight: 800, color: "#fff", letterSpacing: "-2px" }}>Loved by <span style={{ color: "#3B82F6" }}>designers.</span></h2>
+          <h2 style={{ fontSize: isMobile ? 34 : 48, fontWeight: 800, color: "#fff", letterSpacing: isMobile ? "-1px" : "-2px" }}>Loved by <span style={{ color: "#3B82F6" }}>designers.</span></h2>
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 24, maxWidth: 1100, margin: "0 auto" }}>
+        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : isTablet ? "1fr 1fr" : "repeat(3, 1fr)", gap: 24, maxWidth: 1100, margin: "0 auto" }}>
           {TESTIMONIALS.map((t, i) => (
             <div key={i} className="card-hover" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 20, padding: "36px 32px" }}>
               <div style={{ display: "flex", gap: 2, marginBottom: 20 }}>
@@ -360,12 +375,12 @@ export default function LoginPage() {
       </section>
 
       {/* ── CTA SECTION ── */}
-      <section style={{ padding: "80px 60px 120px", textAlign: "center" }}>
-        <div style={{ background: "linear-gradient(135deg, rgba(59,130,246,0.08), rgba(99,102,241,0.08))", border: "1px solid rgba(99,102,241,0.15)", borderRadius: 28, padding: "80px 60px", maxWidth: 800, margin: "0 auto", position: "relative", overflow: "hidden" }}>
+      <section style={{ padding: isMobile ? "56px 18px 72px" : isTablet ? "68px 28px 92px" : "80px 60px 120px", textAlign: "center" }}>
+        <div style={{ background: "linear-gradient(135deg, rgba(59,130,246,0.08), rgba(99,102,241,0.08))", border: "1px solid rgba(99,102,241,0.15)", borderRadius: 28, padding: isMobile ? "44px 20px" : "80px 60px", maxWidth: 800, margin: "0 auto", position: "relative", overflow: "hidden" }}>
           <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: "linear-gradient(90deg, transparent, #3B82F6, #6366F1, transparent)" }} />
-          <h2 style={{ fontSize: 48, fontWeight: 800, color: "#fff", letterSpacing: "-2px", marginBottom: 16 }}>Ready to design your<br /><span style={{ color: "#3B82F6" }}>dream space?</span></h2>
-          <p style={{ fontSize: 18, color: "#64748B", marginBottom: 40 }}>Join designers who use AI to create stunning interiors in seconds.</p>
-          <button onClick={scrollToForm} className="btn-primary" style={{ padding: "18px 48px", background: "linear-gradient(135deg, #3B82F6, #6366F1)", border: "none", borderRadius: 14, color: "#fff", fontSize: 17, fontWeight: 800, cursor: "pointer", boxShadow: "0 8px 30px rgba(59,130,246,0.4)" }}>
+          <h2 style={{ fontSize: isMobile ? 34 : 48, fontWeight: 800, color: "#fff", letterSpacing: isMobile ? "-1px" : "-2px", marginBottom: 16 }}>Ready to design your<br /><span style={{ color: "#3B82F6" }}>dream space?</span></h2>
+          <p style={{ fontSize: isMobile ? 16 : 18, color: "#64748B", marginBottom: 40 }}>Join designers who use AI to create stunning interiors in seconds.</p>
+          <button onClick={scrollToForm} className="btn-primary" style={{ width: isMobile ? "100%" : "auto", padding: isMobile ? "16px 22px" : "18px 48px", background: "linear-gradient(135deg, #3B82F6, #6366F1)", border: "none", borderRadius: 14, color: "#fff", fontSize: isMobile ? 16 : 17, fontWeight: 800, cursor: "pointer", boxShadow: "0 8px 30px rgba(59,130,246,0.4)" }}>
             Start Designing Free →
           </button>
           <div style={{ marginTop: 20, fontSize: 14, color: "#334155" }}>No credit card required · Free to start</div>
@@ -373,7 +388,7 @@ export default function LoginPage() {
       </section>
 
       {/* ── FOOTER ── */}
-      <footer style={{ background: "rgba(255,255,255,0.015)", borderTop: "1px solid rgba(255,255,255,0.05)", padding: "60px 60px 40px" }}>
+      <footer style={{ background: "rgba(255,255,255,0.015)", borderTop: "1px solid rgba(255,255,255,0.05)", padding: isMobile ? "40px 18px 28px" : isTablet ? "48px 28px 34px" : "60px 60px 40px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 48, flexWrap: "wrap", gap: 40 }}>
           <div style={{ maxWidth: 280 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
@@ -382,7 +397,7 @@ export default function LoginPage() {
             </div>
             <p style={{ fontSize: 14, color: "#475569", lineHeight: 1.7 }}>AI-powered interior design platform. Generate professional concepts in seconds.</p>
           </div>
-          <div style={{ display: "flex", gap: 80, flexWrap: "wrap" }}>
+          <div style={{ display: "flex", gap: isMobile ? 32 : 80, flexWrap: "wrap" }}>
             <div>
               <div style={{ fontSize: 12, fontWeight: 700, color: "#64748B", letterSpacing: "1px", textTransform: "uppercase", marginBottom: 20 }}>Product</div>
               {["Features", "How it Works", "Analytics", "Export PDF"].map(l => (

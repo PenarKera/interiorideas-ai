@@ -34,6 +34,8 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [viewportWidth, setViewportWidth] = useState(1280);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [profileForm, setProfileForm] = useState({ fullName: "", email: "" });
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileMessage, setProfileMessage] = useState("");
@@ -41,6 +43,9 @@ export default function Home() {
   const dropdownRef = useRef(null);
   const router = useRouter();
   const authUnavailable = !supabase;
+  const isMobile = viewportWidth < 768;
+  const isTablet = viewportWidth >= 768 && viewportWidth < 1100;
+  const isCompact = viewportWidth < 1200;
 
   useEffect(() => {
     let active = true;
@@ -92,6 +97,24 @@ export default function Home() {
     };
   }, []);
 
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return undefined;
+    }
+
+    const onResize = () => setViewportWidth(window.innerWidth);
+    onResize();
+    window.addEventListener("resize", onResize);
+
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
+  useEffect(() => {
+    if (!isMobile) {
+      setMobileSidebarOpen(false);
+    }
+  }, [isMobile]);
+
   const fetchHistory = useCallback(async () => {
     if (!user || !supabase) return;
     setHistoryLoading(true);
@@ -108,6 +131,13 @@ export default function Home() {
   useEffect(() => {
     if ((activeTab === "history" || activeTab === "stats") && user) fetchHistory();
   }, [activeTab, user, fetchHistory]);
+
+  useEffect(() => {
+    if (isMobile) {
+      setMobileSidebarOpen(false);
+      setShowDropdown(false);
+    }
+  }, [activeTab, isMobile]);
 
   useEffect(() => {
     if (!user) return;
@@ -297,43 +327,56 @@ export default function Home() {
 
   const userName = user.user_metadata?.full_name?.split(" ")[0] || user.email?.split("@")[0] || "Designer";
   const userInitial = userName[0].toUpperCase();
-  const sidebarW = sidebarCollapsed ? 80 : 260;
+  const sidebarW = isMobile ? Math.min(viewportWidth - 32, 320) : (sidebarCollapsed ? 80 : 260);
 
   return (
-    <div style={{ display: "flex", height: "100vh", background: "#05070A", fontFamily: "system-ui, sans-serif", position: "relative", overflow: "hidden" }}>
+    <div style={{ display: "flex", height: "100dvh", background: "#05070A", fontFamily: "system-ui, sans-serif", position: "relative", overflow: "hidden" }}>
 
       <div style={{ position: "absolute", top: "-200px", left: "-200px", width: "600px", height: "600px", background: "radial-gradient(circle, rgba(59,130,246,0.06) 0%, transparent 70%)", borderRadius: "50%", zIndex: 0, pointerEvents: "none" }} />
       <div style={{ position: "absolute", bottom: "-300px", right: "-100px", width: "800px", height: "800px", background: "radial-gradient(circle, rgba(99,102,241,0.04) 0%, transparent 70%)", borderRadius: "50%", zIndex: 0, pointerEvents: "none" }} />
+      {isMobile && mobileSidebarOpen && (
+        <div
+          className="no-print"
+          onClick={() => setMobileSidebarOpen(false)}
+          style={{ position: "absolute", inset: 0, background: "rgba(3,5,9,0.7)", backdropFilter: "blur(6px)", zIndex: 45 }}
+        />
+      )}
 
       {/* SIDEBAR */}
-      <aside className="no-print" style={{ width: sidebarW, flexShrink: 0, alignSelf: "stretch", height: "100vh", background: "rgba(8,11,20,0.95)", borderRight: "1px solid rgba(255,255,255,0.05)", display: "flex", flexDirection: "column", transition: "width 0.4s cubic-bezier(0.16, 1, 0.3, 1)", zIndex: 50 }}>
-        <div style={{ padding: sidebarCollapsed ? "28px 0" : "28px 24px", display: "flex", alignItems: "center", justifyContent: sidebarCollapsed ? "center" : "space-between", position: "relative", borderBottom: "1px solid rgba(255,255,255,0.03)" }}>
-          {!sidebarCollapsed && (
+      <aside className="no-print" style={{ width: sidebarW, flexShrink: 0, alignSelf: "stretch", height: "100dvh", background: "rgba(8,11,20,0.95)", borderRight: "1px solid rgba(255,255,255,0.05)", display: "flex", flexDirection: "column", transition: isMobile ? "transform 0.3s ease" : "width 0.4s cubic-bezier(0.16, 1, 0.3, 1)", zIndex: 50, position: isMobile ? "absolute" : "relative", top: 0, left: 0, transform: isMobile ? (mobileSidebarOpen ? "translateX(0)" : "translateX(-105%)") : "none", boxShadow: isMobile ? "0 24px 80px rgba(0,0,0,0.45)" : "none" }}>
+        <div style={{ padding: (!isMobile && sidebarCollapsed) ? "28px 0" : isMobile ? "24px 18px" : "28px 24px", display: "flex", alignItems: "center", justifyContent: (!isMobile && sidebarCollapsed) ? "center" : "space-between", position: "relative", borderBottom: "1px solid rgba(255,255,255,0.03)" }}>
+          {(isMobile || !sidebarCollapsed) && (
             <div style={{ display: "flex", alignItems: "center", gap: 12, overflow: "hidden" }}>
               <div style={{ width: 34, height: 34, background: "linear-gradient(135deg, #3B82F6, #6366F1)", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, color: "#fff", fontWeight: 700, flexShrink: 0 }}>◈</div>
               <div style={{ whiteSpace: "nowrap", fontSize: 17, fontWeight: 700, color: "#fff" }}>InteriorIdeas<span style={{ color: "#3B82F6" }}>.ai</span></div>
             </div>
           )}
-          {sidebarCollapsed && (
+          {!isMobile && sidebarCollapsed && (
             <div style={{ width: 34, height: 34, background: "linear-gradient(135deg, #3B82F6, #6366F1)", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, color: "#fff", fontWeight: 700 }}>◈</div>
           )}
+          {isMobile && (
+            <button onClick={() => setMobileSidebarOpen(false)}
+              style={{ width: 34, height: 34, background: "#0F1423", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#94A3B8", fontSize: 18, zIndex: 60 }}>
+              ×
+            </button>
+          )}
           <button onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-            style={{ position: sidebarCollapsed ? "static" : "absolute", right: "-12px", width: 24, height: 24, background: "#0F1423", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#94A3B8", fontSize: 14, zIndex: 60, marginTop: sidebarCollapsed ? 20 : 0 }}>
+            style={{ position: sidebarCollapsed ? "static" : "absolute", right: "-12px", width: 24, height: 24, background: "#0F1423", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "50%", display: isMobile ? "none" : "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#94A3B8", fontSize: 14, zIndex: 60, marginTop: sidebarCollapsed ? 20 : 0 }}>
             {sidebarCollapsed ? "›" : "‹"}
           </button>
         </div>
 
         <nav style={{ flex: 1, padding: "24px 12px", display: "flex", flexDirection: "column", gap: 8 }}>
-          {!sidebarCollapsed && <div style={{ fontSize: 10, fontWeight: 700, color: "#475569", letterSpacing: "1.5px", textTransform: "uppercase", padding: "0 12px", marginBottom: 8 }}>Workspace</div>}
+          {(isMobile || !sidebarCollapsed) && <div style={{ fontSize: 10, fontWeight: 700, color: "#475569", letterSpacing: "1.5px", textTransform: "uppercase", padding: "0 12px", marginBottom: 8 }}>Workspace</div>}
           {NAV.map(({ id, label, icon }) => {
             const isActive = activeTab === id;
             return (
-              <button key={id} onClick={() => setActiveTab(id)} title={sidebarCollapsed ? label : undefined}
-                style={{ display: "flex", alignItems: "center", gap: 14, padding: sidebarCollapsed ? "12px 0" : "12px 16px", justifyContent: sidebarCollapsed ? "center" : "flex-start", background: isActive ? "rgba(59,130,246,0.1)" : "transparent", borderLeft: isActive ? "3px solid #3B82F6" : "3px solid transparent", borderRadius: sidebarCollapsed ? 12 : 0, cursor: "pointer", color: isActive ? "#fff" : "#64748B", border: "none", fontSize: 14, fontWeight: isActive ? 600 : 500, width: "100%", transition: "all 0.2s", textAlign: "left" }}
+              <button key={id} onClick={() => setActiveTab(id)} title={!isMobile && sidebarCollapsed ? label : undefined}
+                style={{ display: "flex", alignItems: "center", gap: 14, padding: (!isMobile && sidebarCollapsed) ? "12px 0" : "12px 16px", justifyContent: (!isMobile && sidebarCollapsed) ? "center" : "flex-start", background: isActive ? "rgba(59,130,246,0.1)" : "transparent", borderLeft: isActive ? "3px solid #3B82F6" : "3px solid transparent", borderRadius: (!isMobile && sidebarCollapsed) ? 12 : 0, cursor: "pointer", color: isActive ? "#fff" : "#64748B", border: "none", fontSize: 14, fontWeight: isActive ? 600 : 500, width: "100%", transition: "all 0.2s", textAlign: "left" }}
                 onMouseEnter={e => { if (!isActive) e.currentTarget.style.color = "#fff"; }}
                 onMouseLeave={e => { if (!isActive) e.currentTarget.style.color = "#64748B"; }}>
                 <span style={{ fontSize: 18, flexShrink: 0, color: isActive ? "#3B82F6" : "inherit" }}>{icon}</span>
-                {!sidebarCollapsed && <span>{label}</span>}
+                {(isMobile || !sidebarCollapsed) && <span>{label}</span>}
               </button>
             );
           })}
@@ -341,11 +384,11 @@ export default function Home() {
 
         <div ref={dropdownRef} style={{ padding: "20px 16px", borderTop: "1px solid rgba(255,255,255,0.03)", position: "relative" }}>
           <button onClick={() => setShowDropdown(!showDropdown)}
-            style={{ display: "flex", alignItems: "center", gap: 12, width: "100%", padding: "8px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 12, cursor: "pointer", justifyContent: sidebarCollapsed ? "center" : "flex-start" }}
+            style={{ display: "flex", alignItems: "center", gap: 12, width: "100%", padding: "8px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 12, cursor: "pointer", justifyContent: (!isMobile && sidebarCollapsed) ? "center" : "flex-start" }}
             onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.04)"}
             onMouseLeave={e => e.currentTarget.style.background = "rgba(255,255,255,0.02)"}>
             <div style={{ width: 34, height: 34, background: "#1E293B", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 13, fontWeight: 700, flexShrink: 0, border: "1px solid #334155" }}>{userInitial}</div>
-            {!sidebarCollapsed && (
+            {(isMobile || !sidebarCollapsed) && (
               <div style={{ textAlign: "left", overflow: "hidden" }}>
                 <div style={{ fontSize: 13, fontWeight: 600, color: "#fff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{userName}</div>
                 <div style={{ fontSize: 11, color: "#475569" }}>Pro Studio</div>
@@ -374,36 +417,44 @@ export default function Home() {
       {/* MAIN CONTENT */}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, minHeight: 0, position: "relative", zIndex: 10 }}>
 
-        <header className="no-print" style={{ height: 76, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 40px", position: "sticky", top: 0, zIndex: 40, background: "rgba(5,7,10,0.95)", borderBottom: "1px solid rgba(255,255,255,0.03)", backdropFilter: "blur(20px)" }}>
-          <div>
+        <header className="no-print" style={{ height: isMobile ? 72 : 76, display: "flex", alignItems: "center", justifyContent: "space-between", padding: isMobile ? "0 18px" : "0 40px", position: "sticky", top: 0, zIndex: 40, background: "rgba(5,7,10,0.95)", borderBottom: "1px solid rgba(255,255,255,0.03)", backdropFilter: "blur(20px)", gap: 16 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 14, minWidth: 0 }}>
+            {isMobile && (
+              <button onClick={() => setMobileSidebarOpen(true)}
+                style={{ width: 38, height: 38, borderRadius: 12, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0, fontSize: 18 }}>
+                ☰
+              </button>
+            )}
+            <div>
             <div style={{ fontSize: 20, fontWeight: 700, color: "#fff" }}>{NAV.find(n => n.id === activeTab)?.label}</div>
             <div style={{ fontSize: 12, color: "#475569", marginTop: 2 }}>
               {activeTab === "design" ? "Design studio active" : activeTab === "history" ? `${history.length} saved layouts` : activeTab === "profile" ? "Manage your account details" : "Performance metrics"}
             </div>
+            </div>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
             {activeTab !== "design" && (
               <button onClick={() => setActiveTab("design")}
-                style={{ padding: "10px 20px", background: "linear-gradient(135deg, #3B82F6, #6366F1)", border: "none", borderRadius: 10, color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+                style={{ padding: isMobile ? "10px 14px" : "10px 20px", background: "linear-gradient(135deg, #3B82F6, #6366F1)", border: "none", borderRadius: 10, color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
                 ✦ Start Designing
               </button>
             )}
-            <div style={{ fontSize: 12, color: "#64748B", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 10, padding: "8px 16px" }}>
+            {!isMobile && <div style={{ fontSize: 12, color: "#64748B", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 10, padding: "8px 16px" }}>
               {new Date().toLocaleDateString("en-US", { weekday: "short", month: "long", day: "numeric" })}
-            </div>
+            </div>}
           </div>
         </header>
 
-        <main style={{ flex: 1, minHeight: 0, padding: "40px", overflowY: "auto", overscrollBehavior: "contain" }}>
+        <main style={{ flex: 1, minHeight: 0, padding: isMobile ? "18px" : isTablet ? "24px" : "40px", overflowY: "auto", overscrollBehavior: "contain" }}>
 
           {/* ANALYTICS */}
           {activeTab === "stats" && (
             <div style={{ maxWidth: 1000, margin: "0 auto" }}>
               <div style={{ marginBottom: 40 }}>
                 <div style={{ display: "inline-block", background: "rgba(59,130,246,0.1)", border: "1px solid rgba(59,130,246,0.2)", borderRadius: 100, padding: "4px 12px", fontSize: 10, color: "#3B82F6", fontWeight: 700, letterSpacing: "1px", textTransform: "uppercase", marginBottom: 16 }}>Intelligence</div>
-                <h1 style={{ fontSize: 38, fontWeight: 800, color: "#fff", margin: 0 }}>Studio <span style={{ color: "#3B82F6" }}>Metrics</span></h1>
+                <h1 style={{ fontSize: isMobile ? 30 : 38, fontWeight: 800, color: "#fff", margin: 0 }}>Studio <span style={{ color: "#3B82F6" }}>Metrics</span></h1>
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 20, marginBottom: 32 }}>
+              <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : isTablet ? "1fr 1fr" : "repeat(4, 1fr)", gap: 20, marginBottom: 32 }}>
                 {[
                   { label: "Total renders", value: stats.total, icon: "🎨", color: "#3B82F6" },
                   { label: "This month", value: stats.thisMonth, icon: "📅", color: "#6366F1" },
@@ -419,7 +470,7 @@ export default function Home() {
                 ))}
               </div>
               {stats.roomCounts.length > 0 ? (
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
+                <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 24 }}>
                   {[
                     { title: "Spaces Designed", data: stats.roomCounts, color: "#3B82F6" },
                     { title: "Aesthetics Applied", data: stats.styleCounts, color: "#6366F1" },
@@ -443,7 +494,7 @@ export default function Home() {
                   ))}
                 </div>
               ) : (
-                <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 24, padding: "80px 40px", textAlign: "center" }}>
+                <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 24, padding: isMobile ? "48px 20px" : "80px 40px", textAlign: "center" }}>
                   <div style={{ fontSize: 48, marginBottom: 20, opacity: 0.5 }}>📊</div>
                   <div style={{ fontSize: 20, fontWeight: 700, color: "#fff", marginBottom: 10 }}>No data yet</div>
                   <div style={{ fontSize: 15, color: "#475569", marginBottom: 30 }}>Generate and save designs to see analytics.</div>
@@ -456,10 +507,10 @@ export default function Home() {
           {/* HISTORY */}
           {activeTab === "history" && (
             <div style={{ maxWidth: 1000, margin: "0 auto" }}>
-              <div style={{ marginBottom: 36, display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+              <div style={{ marginBottom: 36, display: "flex", flexDirection: isMobile ? "column" : "row", justifyContent: "space-between", alignItems: isMobile ? "flex-start" : "flex-end", gap: isMobile ? 12 : 0 }}>
                 <div>
                   <div style={{ display: "inline-block", background: "rgba(59,130,246,0.1)", border: "1px solid rgba(59,130,246,0.2)", borderRadius: 100, padding: "4px 12px", fontSize: 10, color: "#3B82F6", fontWeight: 700, letterSpacing: "1px", textTransform: "uppercase", marginBottom: 16 }}>Archives</div>
-                  <h1 style={{ fontSize: 38, fontWeight: 800, color: "#fff", margin: 0 }}>Design <span style={{ color: "#3B82F6" }}>Gallery</span></h1>
+                  <h1 style={{ fontSize: isMobile ? 30 : 38, fontWeight: 800, color: "#fff", margin: 0 }}>Design <span style={{ color: "#3B82F6" }}>Gallery</span></h1>
                 </div>
                 <div style={{ fontSize: 13, color: "#475569" }}>{history.length} design{history.length !== 1 ? "s" : ""} saved</div>
               </div>
@@ -475,7 +526,7 @@ export default function Home() {
                   <div style={{ width: 24, height: 24, border: "2px solid rgba(255,255,255,0.1)", borderTopColor: "#3B82F6", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} /> Loading...
                 </div>
               ) : filteredHistory.length === 0 ? (
-                <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 24, padding: "80px 40px", textAlign: "center" }}>
+                <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 24, padding: isMobile ? "48px 20px" : "80px 40px", textAlign: "center" }}>
                   <div style={{ fontSize: 48, marginBottom: 20, opacity: 0.5 }}>{searchQuery ? "🔍" : "🖼️"}</div>
                   <div style={{ fontSize: 20, fontWeight: 700, color: "#fff", marginBottom: 10 }}>{searchQuery ? "No results" : "Empty Gallery"}</div>
                   <div style={{ fontSize: 15, color: "#475569", marginBottom: 30 }}>{searchQuery ? `No designs match "${searchQuery}"` : "Create your first design to populate the gallery."}</div>
@@ -484,7 +535,7 @@ export default function Home() {
               ) : (
                 <div style={{ display: "grid", gap: 16 }}>
                   {filteredHistory.map(design => (
-                    <div key={design.id} style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 20, padding: "28px 32px", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                    <div key={design.id} style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 20, padding: isMobile ? "22px 20px" : "28px 32px", display: "flex", flexDirection: isMobile ? "column" : "row", justifyContent: "space-between", alignItems: "flex-start", gap: isMobile ? 18 : 0 }}>
                       <div style={{ flex: 1 }}>
                         <div style={{ display: "flex", gap: 8, marginBottom: 14, flexWrap: "wrap", alignItems: "center" }}>
                           {[design.room, design.style].map(tag => (
@@ -495,7 +546,7 @@ export default function Home() {
                         <h3 style={{ fontSize: 20, fontWeight: 700, color: "#fff", margin: "0 0 10px" }}>{design.concept_title}</h3>
                         <p style={{ fontSize: 14, color: "#64748B", lineHeight: 1.7, margin: 0 }}>{design.concept_description?.slice(0, 150)}...</p>
                       </div>
-                      <div style={{ display: "flex", flexDirection: "column", gap: 10, flexShrink: 0, marginLeft: 20 }}>
+                      <div style={{ display: "flex", flexDirection: isMobile ? "row" : "column", gap: 10, flexShrink: 0, marginLeft: isMobile ? 0 : 20, width: isMobile ? "100%" : "auto" }}>
                         <button onClick={() => handleLoadDesign(design)}
                           style={{ padding: "10px 24px", background: "rgba(59,130,246,0.1)", border: "1px solid rgba(59,130,246,0.3)", borderRadius: 10, color: "#60A5FA", cursor: "pointer", fontSize: 14, fontWeight: 700 }}
                           onMouseEnter={e => { e.currentTarget.style.background = "#3B82F6"; e.currentTarget.style.color = "#fff"; }}
@@ -520,10 +571,10 @@ export default function Home() {
             <div style={{ maxWidth: 860, margin: "0 auto" }}>
               <div style={{ marginBottom: 36 }}>
                 <div style={{ display: "inline-block", background: "rgba(59,130,246,0.1)", border: "1px solid rgba(59,130,246,0.2)", borderRadius: 100, padding: "4px 12px", fontSize: 10, color: "#3B82F6", fontWeight: 700, letterSpacing: "1px", textTransform: "uppercase", marginBottom: 16 }}>Account</div>
-                <h1 style={{ fontSize: 38, fontWeight: 800, color: "#fff", margin: 0 }}>Profile <span style={{ color: "#3B82F6" }}>Settings</span></h1>
+                <h1 style={{ fontSize: isMobile ? 30 : 38, fontWeight: 800, color: "#fff", margin: 0 }}>Profile <span style={{ color: "#3B82F6" }}>Settings</span></h1>
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1.3fr 0.7fr", gap: 24 }}>
+              <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1.3fr 0.7fr", gap: 24 }}>
                 <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 24, padding: 32 }}>
                   <div style={{ fontSize: 18, fontWeight: 700, color: "#fff", marginBottom: 8 }}>Personal info</div>
                   <div style={{ fontSize: 14, color: "#64748B", lineHeight: 1.7, marginBottom: 28 }}>Update the display name shown across your workspace. Email is shown here for reference, while password changes stay on a separate secure screen.</div>
@@ -563,7 +614,7 @@ export default function Home() {
                     </div>
                   )}
 
-                  <div style={{ display: "flex", gap: 12 }}>
+                  <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", gap: 12 }}>
                     <button
                       onClick={handleProfileSave}
                       disabled={profileSaving}
@@ -608,33 +659,33 @@ export default function Home() {
                     <div style={{ width: 8, height: 8, background: "#3B82F6", borderRadius: "50%" }} />
                     <span style={{ fontSize: 10, color: "#60A5FA", fontWeight: 700, letterSpacing: "1px", textTransform: "uppercase" }}>AI generation ready</span>
                   </div>
-                  <h1 style={{ fontSize: 48, fontWeight: 800, color: "#fff", margin: 0, letterSpacing: "-1.5px" }}>
+                  <h1 style={{ fontSize: isMobile ? 34 : 48, fontWeight: 800, color: "#fff", margin: 0, letterSpacing: isMobile ? "-1px" : "-1.5px" }}>
                     Setup your <span style={{ background: "linear-gradient(to right, #3B82F6, #8B5CF6)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>masterplan.</span>
                   </h1>
                 </div>
               )}
 
               {/* Progress Steps */}
-              <div style={{ display: "flex", alignItems: "center", marginBottom: 36, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 20, padding: "16px 32px" }}>
+              <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", alignItems: isMobile ? "flex-start" : "center", marginBottom: 36, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 20, padding: isMobile ? "16px 18px" : "16px 32px", gap: isMobile ? 14 : 0 }}>
                 {["Configuration", "Processing", "Masterpiece"].map((step, i) => (
-                  <div key={step} style={{ display: "flex", alignItems: "center", flex: i < 2 ? 1 : "auto" }}>
+                  <div key={step} style={{ display: "flex", alignItems: "center", width: isMobile ? "100%" : "auto", flex: i < 2 ? 1 : "auto" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                       <div style={{ width: 28, height: 28, borderRadius: "50%", background: i + 1 <= activeStep ? "#3B82F6" : "rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, color: i + 1 <= activeStep ? "#fff" : "#475569", fontWeight: 700, flexShrink: 0, transition: "all 0.5s", boxShadow: i + 1 <= activeStep ? "0 0 15px rgba(59,130,246,0.5)" : "none" }}>
                         {i + 1 < activeStep ? "✓" : i + 1}
                       </div>
                       <span style={{ fontSize: 13, color: i + 1 <= activeStep ? "#fff" : "#475569", fontWeight: i + 1 <= activeStep ? 600 : 500, transition: "color 0.5s" }}>{step}</span>
                     </div>
-                    {i < 2 && <div style={{ flex: 1, height: 2, background: i + 1 < activeStep ? "#3B82F6" : "rgba(255,255,255,0.05)", margin: "0 20px", borderRadius: 2, transition: "background 0.5s" }} />}
+                    {!isMobile && i < 2 && <div style={{ flex: 1, height: 2, background: i + 1 < activeStep ? "#3B82F6" : "rgba(255,255,255,0.05)", margin: "0 20px", borderRadius: 2, transition: "background 0.5s" }} />}
                   </div>
                 ))}
               </div>
 
               {/* FORM */}
               {!result && !loading && (
-                <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 24, padding: 40 }}>
+                <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 24, padding: isMobile ? 20 : 40 }}>
                   <div style={{ marginBottom: 36 }}>
                     <label style={{ fontSize: 12, fontWeight: 700, color: "#64748B", letterSpacing: "1px", textTransform: "uppercase", display: "block", marginBottom: 16 }}>Select Canvas (Room)</label>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: 12 }}>
+                    <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : isTablet ? "repeat(3, 1fr)" : "repeat(6, 1fr)", gap: 12 }}>
                       {ROOMS.map(r => {
                         const isSel = form.room === r;
                         return (
@@ -650,7 +701,7 @@ export default function Home() {
                     </div>
                   </div>
 
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 24, marginBottom: 32 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : isTablet ? "1fr 1fr" : "1fr 1fr 1fr", gap: 24, marginBottom: 32 }}>
                     {[["style","Aesthetic",STYLES],["palette","Color Grade",PALETTES],["budget","Budget Tier",BUDGETS]].map(([key,label,opts]) => (
                       <div key={key}>
                         <label style={{ fontSize: 12, fontWeight: 700, color: "#64748B", letterSpacing: "1px", textTransform: "uppercase", display: "block", marginBottom: 12 }}>{label}</label>
@@ -693,7 +744,7 @@ export default function Home() {
 
               {/* LOADING */}
               {loading && (
-                <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 24, padding: "60px", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
+                <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 24, padding: isMobile ? "36px 20px" : "60px", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
                   <div style={{ position: "relative", width: 80, height: 80, marginBottom: 30 }}>
                     <div style={{ position: "absolute", inset: 0, border: "3px solid rgba(255,255,255,0.05)", borderRadius: "50%" }} />
                     <div style={{ position: "absolute", inset: 0, border: "3px solid transparent", borderTopColor: "#3B82F6", borderRightColor: "#6366F1", borderRadius: "50%", animation: "spin 1s linear infinite" }} />
@@ -714,15 +765,15 @@ export default function Home() {
 
                   <div className="print-card" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 24, overflow: "hidden", marginBottom: 24 }}>
                     {/* Header */}
-                    <div style={{ padding: "40px 48px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 30 }}>
+                    <div style={{ padding: isMobile ? "26px 20px" : "40px 48px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                      <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", justifyContent: "space-between", alignItems: "flex-start", gap: 30 }}>
                         <div style={{ flex: 1 }}>
                           <div style={{ fontSize: 11, fontWeight: 700, color: "#60A5FA", letterSpacing: "2px", textTransform: "uppercase", marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
                             <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#60A5FA" }} /> Render Complete
                           </div>
-                          <h2 style={{ fontSize: 36, fontWeight: 800, color: "#fff", margin: 0 }}>{result.concept_title}</h2>
+                          <h2 style={{ fontSize: isMobile ? 28 : 36, fontWeight: 800, color: "#fff", margin: 0 }}>{result.concept_title}</h2>
                         </div>
-                        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
+                        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: isMobile ? "flex-start" : "flex-end" }}>
                           {[form.room, form.style, form.budget].map(tag => (
                             <span key={tag} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", borderRadius: 8, padding: "6px 14px", fontSize: 12 }}>{tag}</span>
                           ))}
@@ -730,7 +781,7 @@ export default function Home() {
                       </div>
                     </div>
 
-                    <div style={{ padding: "48px" }}>
+                    <div style={{ padding: isMobile ? "22px 20px" : "48px" }}>
                       <p style={{ fontSize: 16, color: "#94A3B8", lineHeight: 1.8, marginBottom: 40 }}>{result.concept_description}</p>
 
                       {/* INSPIRATION PHOTOS WITH OVERLAYS */}
@@ -739,7 +790,7 @@ export default function Home() {
                           <div style={{ fontSize: 12, fontWeight: 700, color: "#fff", letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: 20, display: "flex", alignItems: "center", gap: 10 }}>
                             <div style={{ width: 4, height: 16, background: "#F59E0B", borderRadius: 4 }} /> Inspiration Photos
                           </div>
-                          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 12 }}>
                             {photos.map((p, i) => {
                               const piece = result.furniture?.[i];
                               return (
@@ -795,7 +846,7 @@ export default function Home() {
                           <div style={{ fontSize: 12, fontWeight: 700, color: "#fff", letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: 20, display: "flex", alignItems: "center", gap: 10 }}>
                             <div style={{ width: 4, height: 16, background: "#06B6D4", borderRadius: 4 }} /> Recommended Room Dimensions
                           </div>
-                          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
+                          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)", gap: 12 }}>
                             {[
                               { label: "Width", value: `${result.room_dimensions.recommended_width_m}m`, icon: "↔️" },
                               { label: "Length", value: `${result.room_dimensions.recommended_length_m}m`, icon: "↕️" },
@@ -830,7 +881,7 @@ export default function Home() {
                               <div style={{ width: 4, height: 16, background: barColor, borderRadius: 4 }} /> Budget Tracker
                             </div>
                             <div style={{ background: "rgba(255,255,255,0.02)", border: `1px solid ${isOver ? "rgba(239,68,68,0.2)" : isClose ? "rgba(245,158,11,0.2)" : "rgba(16,185,129,0.2)"}`, borderRadius: 16, padding: "24px 28px" }}>
-                              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 24 }}>
+                              <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr 1fr", gap: 16, marginBottom: 24 }}>
                                 <div style={{ textAlign: "center" }}>
                                   <div style={{ fontSize: 11, color: "#475569", letterSpacing: "1px", textTransform: "uppercase", marginBottom: 8 }}>Totali</div>
                                   <div style={{ fontSize: 28, fontWeight: 800, color: "#fff" }}>${totalSpend.toLocaleString()}</div>
@@ -849,7 +900,7 @@ export default function Home() {
                                   <div style={{ height: "100%", width: `${pct}%`, background: barColor, borderRadius: 10 }} />
                                 </div>
                               </div>
-                              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                              <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", justifyContent: "space-between", alignItems: isMobile ? "flex-start" : "center", gap: isMobile ? 8 : 0 }}>
                                 <span style={{ fontSize: 12, color: "#475569" }}>${budgetMin.toLocaleString()}</span>
                                 <span style={{ fontSize: 13, fontWeight: 700, color: barColor }}>
                                   {isOver ? `⚠ ${pct.toFixed(0)}% — Tejkaluar` : isClose ? `⚡ ${pct.toFixed(0)}% — Afër limitit` : `✓ ${pct.toFixed(0)}% — Brenda budget-it`}
@@ -861,7 +912,7 @@ export default function Home() {
                         );
                       })()}
 
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 40, marginBottom: 40 }}>
+                      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 40, marginBottom: 40 }}>
                         {/* Core Elements */}
                         <div>
                           <div style={{ fontSize: 12, fontWeight: 700, color: "#fff", letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: 20, display: "flex", alignItems: "center", gap: 10 }}>
@@ -902,12 +953,12 @@ export default function Home() {
                             <div key={i} style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 16, padding: "20px 24px", transition: "background 0.3s" }}
                               onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.04)"}
                               onMouseLeave={e => e.currentTarget.style.background = "rgba(255,255,255,0.02)"}>
-                              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: (f.width_cm || f.height_cm || f.depth_cm) ? 12 : 0 }}>
+                              <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", justifyContent: "space-between", alignItems: "flex-start", gap: isMobile ? 12 : 0, marginBottom: (f.width_cm || f.height_cm || f.depth_cm) ? 12 : 0 }}>
                                 <div>
                                   <div style={{ fontWeight: 700, fontSize: 16, color: "#fff", marginBottom: 6 }}>{f.item}</div>
                                   <div style={{ fontSize: 14, color: "#475569" }}>{f.description}</div>
                                 </div>
-                                <div style={{ background: "rgba(6,182,212,0.1)", border: "1px solid rgba(6,182,212,0.2)", borderRadius: 10, padding: "8px 18px", color: "#67E8F9", fontWeight: 800, fontSize: 15, marginLeft: 20, whiteSpace: "nowrap" }}>{f.approx_price}</div>
+                                <div style={{ background: "rgba(6,182,212,0.1)", border: "1px solid rgba(6,182,212,0.2)", borderRadius: 10, padding: "8px 18px", color: "#67E8F9", fontWeight: 800, fontSize: 15, marginLeft: isMobile ? 0 : 20, whiteSpace: "nowrap" }}>{f.approx_price}</div>
                               </div>
                               {(f.width_cm || f.height_cm || f.depth_cm) && (
                                 <div style={{ display: "flex", gap: 8 }}>
@@ -935,7 +986,7 @@ export default function Home() {
                   </div>
 
                   {/* Actions */}
-                  <div className="no-print" style={{ display: "flex", gap: 16 }}>
+                  <div className="no-print" style={{ display: "flex", flexDirection: isMobile ? "column" : "row", gap: 16 }}>
                     <button onClick={() => { setResult(null); setActiveStep(1); setPhotos([]); }}
                       style={{ flex: 1, padding: "18px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 16, color: "#fff", fontSize: 15, fontWeight: 700, cursor: "pointer" }}
                       onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.08)"}
