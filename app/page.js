@@ -15,6 +15,7 @@ const NAV = [
   { id: "design",  label: "Studio",    icon: "⬡" },
   { id: "history", label: "Gallery",   icon: "◫" },
   { id: "stats",   label: "Analytics", icon: "◈" },
+  { id: "profile", label: "Profile",   icon: "P" },
 ];
 
 export default function Home() {
@@ -33,6 +34,10 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [profileForm, setProfileForm] = useState({ fullName: "", email: "" });
+  const [profileSaving, setProfileSaving] = useState(false);
+  const [profileMessage, setProfileMessage] = useState("");
+  const [profileError, setProfileError] = useState("");
   const dropdownRef = useRef(null);
   const router = useRouter();
   const authUnavailable = !supabase;
@@ -103,6 +108,14 @@ export default function Home() {
   useEffect(() => {
     if ((activeTab === "history" || activeTab === "stats") && user) fetchHistory();
   }, [activeTab, user, fetchHistory]);
+
+  useEffect(() => {
+    if (!user) return;
+    setProfileForm({
+      fullName: user.user_metadata?.full_name || "",
+      email: user.email || "",
+    });
+  }, [user]);
 
   const handleLogout = async () => {
     if (!supabase) {
@@ -195,6 +208,45 @@ export default function Home() {
   };
 
   const handlePrint = () => window.print();
+
+  const handleProfileSave = async () => {
+    if (!supabase || !user) {
+      setProfileError(supabaseConfigError || "Profile updates are currently unavailable.");
+      return;
+    }
+
+    const fullName = profileForm.fullName.trim();
+    if (!fullName) {
+      setProfileError("Please enter your full name.");
+      setProfileMessage("");
+      return;
+    }
+
+    setProfileSaving(true);
+    setProfileError("");
+    setProfileMessage("");
+
+    const { data, error: updateError } = await supabase.auth.updateUser({
+      data: { full_name: fullName },
+    });
+
+    setProfileSaving(false);
+
+    if (updateError) {
+      setProfileError(updateError.message || "We could not update your profile right now.");
+      return;
+    }
+
+    if (data?.user) {
+      setUser(data.user);
+      setProfileForm({
+        fullName: data.user.user_metadata?.full_name || fullName,
+        email: data.user.email || profileForm.email,
+      });
+    }
+
+    setProfileMessage("Profile updated successfully.");
+  };
 
   const filteredHistory = history.filter(d => {
     const q = searchQuery.toLowerCase();
@@ -326,7 +378,7 @@ export default function Home() {
           <div>
             <div style={{ fontSize: 20, fontWeight: 700, color: "#fff" }}>{NAV.find(n => n.id === activeTab)?.label}</div>
             <div style={{ fontSize: 12, color: "#475569", marginTop: 2 }}>
-              {activeTab === "design" ? "Design studio active" : activeTab === "history" ? `${history.length} saved layouts` : "Performance metrics"}
+              {activeTab === "design" ? "Design studio active" : activeTab === "history" ? `${history.length} saved layouts` : activeTab === "profile" ? "Manage your account details" : "Performance metrics"}
             </div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
@@ -461,6 +513,89 @@ export default function Home() {
                   ))}
                 </div>
               )}
+            </div>
+          )}
+
+          {activeTab === "profile" && (
+            <div style={{ maxWidth: 860, margin: "0 auto" }}>
+              <div style={{ marginBottom: 36 }}>
+                <div style={{ display: "inline-block", background: "rgba(59,130,246,0.1)", border: "1px solid rgba(59,130,246,0.2)", borderRadius: 100, padding: "4px 12px", fontSize: 10, color: "#3B82F6", fontWeight: 700, letterSpacing: "1px", textTransform: "uppercase", marginBottom: 16 }}>Account</div>
+                <h1 style={{ fontSize: 38, fontWeight: 800, color: "#fff", margin: 0 }}>Profile <span style={{ color: "#3B82F6" }}>Settings</span></h1>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1.3fr 0.7fr", gap: 24 }}>
+                <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 24, padding: 32 }}>
+                  <div style={{ fontSize: 18, fontWeight: 700, color: "#fff", marginBottom: 8 }}>Personal info</div>
+                  <div style={{ fontSize: 14, color: "#64748B", lineHeight: 1.7, marginBottom: 28 }}>Update the display name shown across your workspace. Email is shown here for reference, while password changes stay on a separate secure screen.</div>
+
+                  <div style={{ marginBottom: 22 }}>
+                    <label style={{ fontSize: 12, fontWeight: 700, color: "#64748B", letterSpacing: "1px", textTransform: "uppercase", display: "block", marginBottom: 12 }}>Full Name</label>
+                    <input
+                      type="text"
+                      value={profileForm.fullName}
+                      onChange={e => setProfileForm({ ...profileForm, fullName: e.target.value })}
+                      placeholder="Your full name"
+                      style={{ width: "100%", background: "#0D121F", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, padding: "16px 20px", color: "#fff", fontSize: 15, outline: "none", boxSizing: "border-box" }}
+                      onFocus={e => { e.target.style.borderColor = "#3B82F6"; }}
+                      onBlur={e => { e.target.style.borderColor = "rgba(255,255,255,0.1)"; }}
+                    />
+                  </div>
+
+                  <div style={{ marginBottom: 24 }}>
+                    <label style={{ fontSize: 12, fontWeight: 700, color: "#64748B", letterSpacing: "1px", textTransform: "uppercase", display: "block", marginBottom: 12 }}>Email Address</label>
+                    <input
+                      type="email"
+                      value={profileForm.email}
+                      readOnly
+                      style={{ width: "100%", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, padding: "16px 20px", color: "#94A3B8", fontSize: 15, outline: "none", boxSizing: "border-box" }}
+                    />
+                  </div>
+
+                  {profileError && (
+                    <div style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: 16, padding: "14px 18px", marginBottom: 16, color: "#FCA5A5", fontSize: 14 }}>
+                      {profileError}
+                    </div>
+                  )}
+
+                  {profileMessage && (
+                    <div style={{ background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.25)", borderRadius: 16, padding: "14px 18px", marginBottom: 16, color: "#6EE7B7", fontSize: 14 }}>
+                      {profileMessage}
+                    </div>
+                  )}
+
+                  <div style={{ display: "flex", gap: 12 }}>
+                    <button
+                      onClick={handleProfileSave}
+                      disabled={profileSaving}
+                      style={{ padding: "14px 22px", background: "linear-gradient(135deg, #3B82F6, #6366F1)", border: "none", borderRadius: 12, color: "#fff", fontSize: 14, fontWeight: 700, cursor: profileSaving ? "default" : "pointer", opacity: profileSaving ? 0.7 : 1 }}
+                    >
+                      {profileSaving ? "Saving..." : "Save changes"}
+                    </button>
+                    <button
+                      onClick={() => router.push("/update-password")}
+                      style={{ padding: "14px 22px", background: "transparent", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer" }}
+                    >
+                      Change password
+                    </button>
+                  </div>
+                </div>
+
+                <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+                  <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 24, padding: 28 }}>
+                    <div style={{ width: 64, height: 64, borderRadius: "50%", background: "linear-gradient(135deg, #3B82F6, #6366F1)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 24, fontWeight: 800, marginBottom: 18 }}>
+                      {userInitial}
+                    </div>
+                    <div style={{ fontSize: 20, fontWeight: 700, color: "#fff", marginBottom: 6 }}>{profileForm.fullName || userName}</div>
+                    <div style={{ fontSize: 14, color: "#64748B", marginBottom: 20 }}>{profileForm.email}</div>
+                    <div style={{ fontSize: 12, color: "#94A3B8", lineHeight: 1.7 }}>This name is pulled from your Supabase auth metadata, so any update here appears automatically in the dashboard greeting and account area.</div>
+                  </div>
+
+                  <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 24, padding: 28 }}>
+                    <div style={{ fontSize: 16, fontWeight: 700, color: "#fff", marginBottom: 12 }}>What belongs here</div>
+                    <div style={{ fontSize: 14, color: "#64748B", lineHeight: 1.8 }}>For now this project only needs a clean user profile: name, email visibility, password reset, and later maybe avatar or company name. You do not need a heavy CRM-style account system yet.</div>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
 
