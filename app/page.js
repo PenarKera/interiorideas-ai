@@ -73,6 +73,20 @@ export default function Home() {
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
+  useEffect(() => {
+    const { documentElement, body } = document;
+    const previousHtmlOverflow = documentElement.style.overflow;
+    const previousBodyOverflow = body.style.overflow;
+
+    documentElement.style.overflow = "hidden";
+    body.style.overflow = "hidden";
+
+    return () => {
+      documentElement.style.overflow = previousHtmlOverflow;
+      body.style.overflow = previousBodyOverflow;
+    };
+  }, []);
+
   const fetchHistory = useCallback(async () => {
     if (!user || !supabase) return;
     setHistoryLoading(true);
@@ -234,13 +248,13 @@ export default function Home() {
   const sidebarW = sidebarCollapsed ? 80 : 260;
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: "#05070A", fontFamily: "system-ui, sans-serif", position: "relative", overflow: "hidden" }}>
+    <div style={{ display: "flex", height: "100vh", background: "#05070A", fontFamily: "system-ui, sans-serif", position: "relative", overflow: "hidden" }}>
 
       <div style={{ position: "absolute", top: "-200px", left: "-200px", width: "600px", height: "600px", background: "radial-gradient(circle, rgba(59,130,246,0.06) 0%, transparent 70%)", borderRadius: "50%", zIndex: 0, pointerEvents: "none" }} />
       <div style={{ position: "absolute", bottom: "-300px", right: "-100px", width: "800px", height: "800px", background: "radial-gradient(circle, rgba(99,102,241,0.04) 0%, transparent 70%)", borderRadius: "50%", zIndex: 0, pointerEvents: "none" }} />
 
       {/* SIDEBAR */}
-      <aside className="no-print" style={{ width: sidebarW, flexShrink: 0, alignSelf: "stretch", minHeight: "100vh", background: "rgba(8,11,20,0.95)", borderRight: "1px solid rgba(255,255,255,0.05)", display: "flex", flexDirection: "column", transition: "width 0.4s cubic-bezier(0.16, 1, 0.3, 1)", zIndex: 50 }}>
+      <aside className="no-print" style={{ width: sidebarW, flexShrink: 0, alignSelf: "stretch", height: "100vh", background: "rgba(8,11,20,0.95)", borderRight: "1px solid rgba(255,255,255,0.05)", display: "flex", flexDirection: "column", transition: "width 0.4s cubic-bezier(0.16, 1, 0.3, 1)", zIndex: 50 }}>
         <div style={{ padding: sidebarCollapsed ? "28px 0" : "28px 24px", display: "flex", alignItems: "center", justifyContent: sidebarCollapsed ? "center" : "space-between", position: "relative", borderBottom: "1px solid rgba(255,255,255,0.03)" }}>
           {!sidebarCollapsed && (
             <div style={{ display: "flex", alignItems: "center", gap: 12, overflow: "hidden" }}>
@@ -306,7 +320,7 @@ export default function Home() {
       </aside>
 
       {/* MAIN CONTENT */}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, position: "relative", zIndex: 10 }}>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, minHeight: 0, position: "relative", zIndex: 10 }}>
 
         <header className="no-print" style={{ height: 76, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 40px", position: "sticky", top: 0, zIndex: 40, background: "rgba(5,7,10,0.95)", borderBottom: "1px solid rgba(255,255,255,0.03)", backdropFilter: "blur(20px)" }}>
           <div>
@@ -328,7 +342,7 @@ export default function Home() {
           </div>
         </header>
 
-        <main style={{ flex: 1, padding: "40px", overflowY: "auto" }}>
+        <main style={{ flex: 1, minHeight: 0, padding: "40px", overflowY: "auto", overscrollBehavior: "contain" }}>
 
           {/* ANALYTICS */}
           {activeTab === "stats" && (

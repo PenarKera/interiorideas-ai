@@ -86,6 +86,7 @@ Mesazhi kryesor i prezantimit:
 
 Para demos do te kontrolloj gjithmone keto pika:
 
+- kam nje account testues gati per login qe te mos humbas kohe gjate prezantimit
 - live URL hapet normalisht
 - route `/login` hapet normalisht
 - account-i testues mund te kycet
@@ -96,6 +97,7 @@ Para demos do te kontrolloj gjithmone keto pika:
 - `Analytics` i lexon te dhenat ekzistuese
 - `PDF export` hapet pa problem
 - interneti dhe browser-i jane gati
+- i kam 1-2 dizajne te ruajtura paraprakisht ne rast se dua te kaloj direkt te `Gallery` ose `Analytics`
 - kam nje prompt te parapergatitur per demo qe te mos humbas kohe duke menduar aty per aty
 
 ## 7. Plani B nese live demo deshton
@@ -135,3 +137,5 @@ Shpjegimi i shkurter teknik dhe mbyllja
 - perfshin pjesen teknike pa u humbur ne detaje
 - ka fallback real ne rast problemi
 - eshte i organizuar me kohe dhe hapa konkrete
+
+Qellimi i demos eshte te tregoj qarte se si perdoruesi kalon nga nje ide fillestare te nje koncept i gjeneruar me AI, i ruajtur dhe i perdorshem per reference ose prezantim.
