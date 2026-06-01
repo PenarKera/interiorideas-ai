@@ -40,6 +40,11 @@ export default function Home() {
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileMessage, setProfileMessage] = useState("");
   const [profileError, setProfileError] = useState("");
+  const [visualForm, setVisualForm] = useState({ image: null, prompt: "", dimensions: "" });
+  const [visualPreview, setVisualPreview] = useState("");
+  const [visualResult, setVisualResult] = useState("");
+  const [visualLoading, setVisualLoading] = useState(false);
+  const [visualError, setVisualError] = useState("");
   const dropdownRef = useRef(null);
   const router = useRouter();
   const authUnavailable = !supabase;
@@ -129,7 +134,7 @@ export default function Home() {
   }, [user]);
 
   useEffect(() => {
-    if ((activeTab === "history" || activeTab === "stats") && user) fetchHistory();
+    if ((activeTab === "history" || activeTab === "stats" || activeTab === "profile") && user) fetchHistory();
   }, [activeTab, user, fetchHistory]);
 
   useEffect(() => {
@@ -188,7 +193,7 @@ export default function Home() {
       return;
     }
     setSaving(true);
-    const { error } = await supabase.from("designs").insert({
+    const designPayload = {
       user_id: user.id,
       room: form.room,
       style: form.style,
@@ -201,7 +206,22 @@ export default function Home() {
       color_tips: result.color_tips,
       pro_tip: result.pro_tip,
       photos: photos,
-    });
+    };
+
+    if (visualResult) {
+      designPayload.visual_render = visualResult;
+      designPayload.visual_prompt = visualForm.prompt;
+      designPayload.visual_dimensions = visualForm.dimensions;
+    }
+
+    let { error } = await supabase.from("designs").insert(designPayload);
+
+    if (error && visualResult && /visual_/i.test(error.message || "")) {
+      setSaving(false);
+      setError("Supabase needs visual_render columns before generated photos can be saved.");
+      return;
+    }
+
     setSaving(false);
     if (!error) {
       setSavedMsg(true);
@@ -222,6 +242,59 @@ export default function Home() {
     setHistory(history.filter(d => d.id !== id));
   };
 
+  const handleVisualImageChange = (event) => {
+    const file = event.target.files?.[0] || null;
+    setVisualForm((current) => ({ ...current, image: file }));
+    setVisualError("");
+    setVisualResult("");
+
+    if (!file) {
+      setVisualPreview("");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => setVisualPreview(String(reader.result || ""));
+    reader.readAsDataURL(file);
+  };
+
+  const handleVisualize = async () => {
+    setVisualError("");
+
+    if (!visualForm.image) {
+      setVisualError("Upload a room photo first.");
+      return;
+    }
+
+    if (!visualForm.prompt.trim()) {
+      setVisualError("Write what you want the AI to change.");
+      return;
+    }
+
+    setVisualLoading(true);
+    try {
+      const body = new FormData();
+      body.append("image", visualForm.image);
+      body.append("prompt", visualForm.prompt);
+      body.append("dimensions", visualForm.dimensions);
+      body.append("room", form.room);
+      body.append("style", form.style);
+      body.append("palette", form.palette);
+
+      const response = await fetch("/api/visualize", {
+        method: "POST",
+        body,
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Image generation failed.");
+      setVisualResult(data.imageUrl);
+    } catch (err) {
+      setVisualError(err.message);
+    } finally {
+      setVisualLoading(false);
+    }
+  };
+
   const handleLoadDesign = (design) => {
     setResult({
       concept_title: design.concept_title,
@@ -233,6 +306,13 @@ export default function Home() {
     });
     setForm({ room: design.room, style: design.style, palette: design.palette, budget: design.budget, extra: "" });
     setPhotos(design.photos || []);
+    setVisualResult(design.visual_render || "");
+    setVisualPreview("");
+    setVisualForm({
+      image: null,
+      prompt: design.visual_prompt || "",
+      dimensions: design.visual_dimensions || "",
+    });
     setActiveTab("design");
     setActiveStep(2);
   };
@@ -291,6 +371,12 @@ export default function Home() {
     roomCounts: ROOMS.map(r => ({ name: r, count: history.filter(d => d.room === r).length })).filter(r => r.count > 0).sort((a, b) => b.count - a.count),
     styleCounts: STYLES.map(s => ({ name: s, count: history.filter(d => d.style === s).length })).filter(s => s.count > 0).sort((a, b) => b.count - a.count),
   };
+
+  const latestDesign = history[0];
+  const generatedRenderCount = history.filter(d => d.visual_render).length;
+  const memberSince = user?.created_at
+    ? new Date(user.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+    : "Active";
 
   if (!user) return (
     <div style={{ minHeight: "100vh", background: "#05070A", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 20, padding: 24, textAlign: "center" }}>
@@ -536,6 +622,19 @@ export default function Home() {
                 <div style={{ display: "grid", gap: 16 }}>
                   {filteredHistory.map(design => (
                     <div key={design.id} style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 20, padding: isMobile ? "22px 20px" : "28px 32px", display: "flex", flexDirection: isMobile ? "column" : "row", justifyContent: "space-between", alignItems: "flex-start", gap: isMobile ? 18 : 0 }}>
+                      {design.visual_render && (
+                        <button
+                          onClick={() => handleLoadDesign(design)}
+                          style={{ width: isMobile ? "100%" : 148, aspectRatio: "4/3", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, overflow: "hidden", padding: 0, marginRight: isMobile ? 0 : 22, background: "rgba(255,255,255,0.03)", cursor: "pointer", flexShrink: 0 }}
+                          title="Open generated render"
+                        >
+                          <img
+                            src={design.visual_render}
+                            alt={`${design.room || "Room"} generated render`}
+                            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                          />
+                        </button>
+                      )}
                       <div style={{ flex: 1 }}>
                         <div style={{ display: "flex", gap: 8, marginBottom: 14, flexWrap: "wrap", alignItems: "center" }}>
                           {[design.room, design.style].map(tag => (
@@ -568,16 +667,73 @@ export default function Home() {
           )}
 
           {activeTab === "profile" && (
-            <div style={{ maxWidth: 860, margin: "0 auto" }}>
-              <div style={{ marginBottom: 36 }}>
+            <div style={{ maxWidth: 1040, margin: "0 auto" }}>
+              <div style={{ marginBottom: 32, display: "flex", flexDirection: isMobile ? "column" : "row", justifyContent: "space-between", alignItems: isMobile ? "flex-start" : "flex-end", gap: 16 }}>
+                <div>
                 <div style={{ display: "inline-block", background: "rgba(59,130,246,0.1)", border: "1px solid rgba(59,130,246,0.2)", borderRadius: 100, padding: "4px 12px", fontSize: 10, color: "#3B82F6", fontWeight: 700, letterSpacing: "1px", textTransform: "uppercase", marginBottom: 16 }}>Account</div>
                 <h1 style={{ fontSize: isMobile ? 30 : 38, fontWeight: 800, color: "#fff", margin: 0 }}>Profile <span style={{ color: "#3B82F6" }}>Settings</span></h1>
+                </div>
+                <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                  <span style={{ background: "rgba(16,185,129,0.09)", border: "1px solid rgba(16,185,129,0.22)", color: "#6EE7B7", borderRadius: 999, padding: "8px 12px", fontSize: 12, fontWeight: 800 }}>Verified workspace</span>
+                  <span style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", color: "#94A3B8", borderRadius: 999, padding: "8px 12px", fontSize: 12, fontWeight: 700 }}>Member since {memberSince}</span>
+                </div>
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1.3fr 0.7fr", gap: 24 }}>
-                <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 24, padding: 32 }}>
-                  <div style={{ fontSize: 18, fontWeight: 700, color: "#fff", marginBottom: 8 }}>Personal info</div>
-                  <div style={{ fontSize: 14, color: "#64748B", lineHeight: 1.7, marginBottom: 28 }}>Update the display name shown across your workspace. Email is shown here for reference, while password changes stay on a separate secure screen.</div>
+              <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "0.95fr 1.35fr", gap: 24, marginBottom: 24 }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+                  <div style={{ background: "linear-gradient(180deg, rgba(59,130,246,0.1), rgba(255,255,255,0.02))", border: "1px solid rgba(59,130,246,0.16)", borderRadius: 24, padding: 30 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 18, marginBottom: 24 }}>
+                      <div style={{ width: 74, height: 74, borderRadius: 20, background: "linear-gradient(135deg, #3B82F6, #06B6D4)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 28, fontWeight: 900, boxShadow: "0 18px 40px rgba(37,99,235,0.28)", flexShrink: 0 }}>
+                        {userInitial}
+                      </div>
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ fontSize: 22, fontWeight: 800, color: "#fff", marginBottom: 5, overflow: "hidden", textOverflow: "ellipsis" }}>{profileForm.fullName || userName}</div>
+                        <div style={{ fontSize: 13, color: "#94A3B8", overflow: "hidden", textOverflow: "ellipsis" }}>{profileForm.email}</div>
+                      </div>
+                    </div>
+
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                      {[
+                        ["Saved designs", stats.total],
+                        ["AI renders", generatedRenderCount],
+                        ["Top room", stats.topRoom],
+                        ["Top style", stats.topStyle],
+                      ].map(([label, value]) => (
+                        <div key={label} style={{ background: "rgba(0,0,0,0.18)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: 14 }}>
+                          <div style={{ fontSize: 11, color: "#64748B", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.7px", marginBottom: 8 }}>{label}</div>
+                          <div style={{ fontSize: typeof value === "number" ? 24 : 15, color: "#fff", fontWeight: 850, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{value}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 24, padding: 26 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18, gap: 12 }}>
+                      <div>
+                        <div style={{ fontSize: 16, fontWeight: 800, color: "#fff", marginBottom: 4 }}>Latest work</div>
+                        <div style={{ fontSize: 13, color: "#64748B" }}>{latestDesign ? "Last saved project" : "No saved projects yet"}</div>
+                      </div>
+                      {latestDesign && (
+                        <button onClick={() => handleLoadDesign(latestDesign)} style={{ padding: "9px 13px", borderRadius: 10, border: "1px solid rgba(59,130,246,0.25)", background: "rgba(59,130,246,0.1)", color: "#60A5FA", fontSize: 12, fontWeight: 800, cursor: "pointer" }}>Open</button>
+                      )}
+                    </div>
+                    {latestDesign ? (
+                      <div>
+                        {latestDesign.visual_render && (
+                          <img src={latestDesign.visual_render} alt="Latest generated render" style={{ width: "100%", aspectRatio: "16/10", objectFit: "cover", borderRadius: 14, border: "1px solid rgba(255,255,255,0.08)", marginBottom: 14 }} />
+                        )}
+                        <div style={{ fontSize: 16, color: "#fff", fontWeight: 800, marginBottom: 6 }}>{latestDesign.concept_title}</div>
+                        <div style={{ fontSize: 13, color: "#64748B" }}>{latestDesign.room} · {latestDesign.style}</div>
+                      </div>
+                    ) : (
+                      <button onClick={() => setActiveTab("design")} style={{ width: "100%", padding: "14px 16px", borderRadius: 12, border: "1px solid rgba(59,130,246,0.24)", background: "rgba(59,130,246,0.08)", color: "#93C5FD", fontWeight: 800, cursor: "pointer" }}>Create first design</button>
+                    )}
+                  </div>
+                </div>
+
+                <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 24, padding: isMobile ? 24 : 32 }}>
+                  <div style={{ fontSize: 18, fontWeight: 800, color: "#fff", marginBottom: 8 }}>Account details</div>
+                  <div style={{ fontSize: 14, color: "#64748B", lineHeight: 1.7, marginBottom: 28 }}>Keep your workspace identity clean and recognizable across saved designs, gallery previews, and account controls.</div>
 
                   <div style={{ marginBottom: 22 }}>
                     <label style={{ fontSize: 12, fontWeight: 700, color: "#64748B", letterSpacing: "1px", textTransform: "uppercase", display: "block", marginBottom: 12 }}>Full Name</label>
@@ -586,7 +742,7 @@ export default function Home() {
                       value={profileForm.fullName}
                       onChange={e => setProfileForm({ ...profileForm, fullName: e.target.value })}
                       placeholder="Your full name"
-                      style={{ width: "100%", background: "#0D121F", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, padding: "16px 20px", color: "#fff", fontSize: 15, outline: "none", boxSizing: "border-box" }}
+                      style={{ width: "100%", background: "#0D121F", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, padding: "16px 18px", color: "#fff", fontSize: 15, outline: "none", boxSizing: "border-box" }}
                       onFocus={e => { e.target.style.borderColor = "#3B82F6"; }}
                       onBlur={e => { e.target.style.borderColor = "rgba(255,255,255,0.1)"; }}
                     />
@@ -598,8 +754,19 @@ export default function Home() {
                       type="email"
                       value={profileForm.email}
                       readOnly
-                      style={{ width: "100%", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, padding: "16px 20px", color: "#94A3B8", fontSize: 15, outline: "none", boxSizing: "border-box" }}
+                      style={{ width: "100%", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: "16px 18px", color: "#94A3B8", fontSize: 15, outline: "none", boxSizing: "border-box" }}
                     />
+                  </div>
+
+                  <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 12, marginBottom: 24 }}>
+                    <div style={{ background: "rgba(16,185,129,0.06)", border: "1px solid rgba(16,185,129,0.16)", borderRadius: 14, padding: 16 }}>
+                      <div style={{ fontSize: 12, color: "#6EE7B7", fontWeight: 800, marginBottom: 7 }}>Auth status</div>
+                      <div style={{ color: "#E2E8F0", fontSize: 14, fontWeight: 700 }}>Signed in securely</div>
+                    </div>
+                    <div style={{ background: "rgba(6,182,212,0.06)", border: "1px solid rgba(6,182,212,0.16)", borderRadius: 14, padding: 16 }}>
+                      <div style={{ fontSize: 12, color: "#67E8F9", fontWeight: 800, marginBottom: 7 }}>Workspace</div>
+                      <div style={{ color: "#E2E8F0", fontSize: 14, fontWeight: 700 }}>InteriorIdeas Studio</div>
+                    </div>
                   </div>
 
                   {profileError && (
@@ -618,7 +785,7 @@ export default function Home() {
                     <button
                       onClick={handleProfileSave}
                       disabled={profileSaving}
-                      style={{ padding: "14px 22px", background: "linear-gradient(135deg, #3B82F6, #6366F1)", border: "none", borderRadius: 12, color: "#fff", fontSize: 14, fontWeight: 700, cursor: profileSaving ? "default" : "pointer", opacity: profileSaving ? 0.7 : 1 }}
+                      style={{ padding: "14px 22px", background: "linear-gradient(135deg, #3B82F6, #06B6D4)", border: "none", borderRadius: 12, color: "#fff", fontSize: 14, fontWeight: 800, cursor: profileSaving ? "default" : "pointer", opacity: profileSaving ? 0.7 : 1 }}
                     >
                       {profileSaving ? "Saving..." : "Save changes"}
                     </button>
@@ -630,21 +797,27 @@ export default function Home() {
                     </button>
                   </div>
                 </div>
+              </div>
 
-                <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-                  <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 24, padding: 28 }}>
-                    <div style={{ width: 64, height: 64, borderRadius: "50%", background: "linear-gradient(135deg, #3B82F6, #6366F1)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 24, fontWeight: 800, marginBottom: 18 }}>
-                      {userInitial}
+              <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 24, padding: isMobile ? 22 : 28 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: isMobile ? "flex-start" : "center", flexDirection: isMobile ? "column" : "row", gap: 14, marginBottom: 18 }}>
+                  <div>
+                    <div style={{ fontSize: 17, fontWeight: 800, color: "#fff", marginBottom: 5 }}>Workspace summary</div>
+                    <div style={{ fontSize: 13, color: "#64748B" }}>A quick snapshot of what this account has created.</div>
+                  </div>
+                  <button onClick={() => setActiveTab("history")} style={{ padding: "10px 14px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.1)", background: "transparent", color: "#E2E8F0", fontSize: 13, fontWeight: 800, cursor: "pointer" }}>View gallery</button>
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)", gap: 12 }}>
+                  {[
+                    ["Design library", `${stats.total} saved`],
+                    ["Generated visuals", `${generatedRenderCount} renders`],
+                    ["Most used palette", history.length ? stats.topStyle : "No data yet"],
+                  ].map(([label, value]) => (
+                    <div key={label} style={{ background: "rgba(0,0,0,0.14)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 14, padding: "16px 18px" }}>
+                      <div style={{ fontSize: 12, color: "#64748B", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.7px", marginBottom: 8 }}>{label}</div>
+                      <div style={{ color: "#fff", fontWeight: 850, fontSize: 18 }}>{value}</div>
                     </div>
-                    <div style={{ fontSize: 20, fontWeight: 700, color: "#fff", marginBottom: 6 }}>{profileForm.fullName || userName}</div>
-                    <div style={{ fontSize: 14, color: "#64748B", marginBottom: 20 }}>{profileForm.email}</div>
-                    <div style={{ fontSize: 12, color: "#94A3B8", lineHeight: 1.7 }}>This name is pulled from your Supabase auth metadata, so any update here appears automatically in the dashboard greeting and account area.</div>
-                  </div>
-
-                  <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 24, padding: 28 }}>
-                    <div style={{ fontSize: 16, fontWeight: 700, color: "#fff", marginBottom: 12 }}>What belongs here</div>
-                    <div style={{ fontSize: 14, color: "#64748B", lineHeight: 1.8 }}>For now this project only needs a clean user profile: name, email visibility, password reset, and later maybe avatar or company name. You do not need a heavy CRM-style account system yet.</div>
-                  </div>
+                  ))}
                 </div>
               </div>
             </div>
@@ -726,6 +899,85 @@ export default function Home() {
                       onBlur={e => { e.target.style.borderColor = "rgba(255,255,255,0.1)"; }} />
                   </div>
 
+                  <div style={{ background: "rgba(6,182,212,0.04)", border: "1px solid rgba(6,182,212,0.14)", borderRadius: 20, padding: isMobile ? 18 : 24, marginBottom: 36 }}>
+                    <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", justifyContent: "space-between", gap: 12, marginBottom: 18 }}>
+                      <div>
+                        <div style={{ fontSize: 12, fontWeight: 800, color: "#67E8F9", letterSpacing: "1px", textTransform: "uppercase", marginBottom: 6 }}>AI Room Visualizer</div>
+                        <div style={{ fontSize: 13, color: "#64748B", lineHeight: 1.5 }}>Upload your room photo, add dimensions and a prompt, then generate a realistic redesign image.</div>
+                      </div>
+                      <div style={{ alignSelf: isMobile ? "flex-start" : "center", background: "rgba(6,182,212,0.08)", border: "1px solid rgba(6,182,212,0.2)", borderRadius: 999, padding: "6px 12px", color: "#67E8F9", fontSize: 11, fontWeight: 800 }}>IMAGE AI</div>
+                    </div>
+
+                    <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "0.85fr 1.15fr", gap: 20 }}>
+                      <div>
+                        <label style={{ fontSize: 12, fontWeight: 700, color: "#64748B", letterSpacing: "1px", textTransform: "uppercase", display: "block", marginBottom: 10 }}>Room Photo</label>
+                        <div style={{ border: "1px dashed rgba(103,232,249,0.28)", borderRadius: 16, background: "rgba(0,0,0,0.18)", overflow: "hidden", minHeight: 190, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                          {visualPreview ? (
+                            <img src={visualPreview} alt="Uploaded room preview" style={{ width: "100%", height: "100%", minHeight: 190, objectFit: "cover" }} />
+                          ) : (
+                            <div style={{ textAlign: "center", padding: 20 }}>
+                              <div style={{ fontSize: 28, color: "#67E8F9", marginBottom: 8 }}>+</div>
+                              <div style={{ fontSize: 13, color: "#64748B" }}>Choose a room image</div>
+                            </div>
+                          )}
+                        </div>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleVisualImageChange}
+                          disabled={visualLoading}
+                          style={{ width: "100%", marginTop: 12, color: "#94A3B8", fontSize: 13 }}
+                        />
+                      </div>
+
+                      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                        <div>
+                          <label style={{ fontSize: 12, fontWeight: 700, color: "#64748B", letterSpacing: "1px", textTransform: "uppercase", display: "block", marginBottom: 10 }}>Dimensions</label>
+                          <input
+                            value={visualForm.dimensions}
+                            onChange={e => setVisualForm({ ...visualForm, dimensions: e.target.value })}
+                            disabled={visualLoading}
+                            placeholder="Example: 4m x 5m, ceiling 2.7m"
+                            style={{ width: "100%", background: "#0D121F", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, padding: "14px 16px", color: "#fff", fontSize: 14, outline: "none", boxSizing: "border-box" }}
+                          />
+                        </div>
+                        <div>
+                          <label style={{ fontSize: 12, fontWeight: 700, color: "#64748B", letterSpacing: "1px", textTransform: "uppercase", display: "block", marginBottom: 10 }}>Image Prompt</label>
+                          <textarea
+                            value={visualForm.prompt}
+                            onChange={e => setVisualForm({ ...visualForm, prompt: e.target.value })}
+                            disabled={visualLoading}
+                            placeholder="Example: keep my sofa and window, add warm lighting, wooden TV wall, modern luxury style..."
+                            rows={4}
+                            style={{ width: "100%", background: "#0D121F", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, padding: "14px 16px", color: "#fff", fontSize: 14, resize: "vertical", outline: "none", lineHeight: 1.5, boxSizing: "border-box" }}
+                          />
+                        </div>
+
+                        {visualError && (
+                          <div style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: 12, padding: "11px 14px", color: "#FCA5A5", fontSize: 13 }}>
+                            {visualError}
+                          </div>
+                        )}
+
+                        <button
+                          type="button"
+                          onClick={handleVisualize}
+                          disabled={visualLoading}
+                          style={{ width: "100%", padding: "15px", background: visualLoading ? "rgba(6,182,212,0.12)" : "linear-gradient(135deg, #06B6D4, #3B82F6)", border: "none", borderRadius: 14, color: "#fff", fontSize: 14, fontWeight: 800, cursor: visualLoading ? "not-allowed" : "pointer", boxShadow: visualLoading ? "none" : "0 8px 24px rgba(6,182,212,0.28)" }}
+                        >
+                          {visualLoading ? "GENERATING ROOM IMAGE..." : "GENERATE IMAGE FROM PHOTO"}
+                        </button>
+                      </div>
+                    </div>
+
+                    {visualResult && (
+                      <div style={{ marginTop: 22 }}>
+                        <div style={{ fontSize: 12, fontWeight: 700, color: "#fff", letterSpacing: "1px", textTransform: "uppercase", marginBottom: 12 }}>Generated Room Render</div>
+                        <img src={visualResult} alt="AI generated room render" style={{ width: "100%", borderRadius: 16, border: "1px solid rgba(255,255,255,0.08)", display: "block" }} />
+                      </div>
+                    )}
+                  </div>
+
                   {error && (
                     <div style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: 16, padding: "16px 24px", marginBottom: 24 }}>
                       <div style={{ fontSize: 14, fontWeight: 700, color: "#fff", marginBottom: 2 }}>⚠ Error</div>
@@ -784,11 +1036,20 @@ export default function Home() {
                     <div style={{ padding: isMobile ? "22px 20px" : "48px" }}>
                       <p style={{ fontSize: 16, color: "#94A3B8", lineHeight: 1.8, marginBottom: 40 }}>{result.concept_description}</p>
 
-                      {/* INSPIRATION PHOTOS WITH OVERLAYS */}
+                      {visualResult && (
+                        <div style={{ marginBottom: 40 }}>
+                          <div style={{ fontSize: 12, fontWeight: 700, color: "#fff", letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: 20, display: "flex", alignItems: "center", gap: 10 }}>
+                            <div style={{ width: 4, height: 16, background: "#06B6D4", borderRadius: 4 }} /> AI Room Render
+                          </div>
+                          <img src={visualResult} alt="AI generated room render" style={{ width: "100%", borderRadius: 16, border: "1px solid rgba(255,255,255,0.08)", display: "block" }} />
+                        </div>
+                      )}
+
+                      {/* SAVED REFERENCE PHOTOS WITH OVERLAYS */}
                       {photos.length > 0 && (
                         <div style={{ marginBottom: 40 }}>
                           <div style={{ fontSize: 12, fontWeight: 700, color: "#fff", letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: 20, display: "flex", alignItems: "center", gap: 10 }}>
-                            <div style={{ width: 4, height: 16, background: "#F59E0B", borderRadius: 4 }} /> Inspiration Photos
+                            <div style={{ width: 4, height: 16, background: "#F59E0B", borderRadius: 4 }} /> Saved Reference Photos
                           </div>
                           <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 12 }}>
                             {photos.map((p, i) => {
@@ -831,7 +1092,7 @@ export default function Home() {
 
                                   {/* CREDIT — bottom */}
                                   <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "8px 12px", background: "linear-gradient(to top, rgba(0,0,0,0.7), transparent)", fontSize: 11, color: "rgba(255,255,255,0.7)" }}>
-                                    Photo by <a href={p.creditLink} target="_blank" rel="noreferrer" style={{ color: "rgba(255,255,255,0.9)" }}>{p.credit}</a> on Unsplash
+                                    Photo by <a href={p.creditLink} target="_blank" rel="noreferrer" style={{ color: "rgba(255,255,255,0.9)" }}>{p.credit}</a>
                                   </div>
                                 </div>
                               );
@@ -987,7 +1248,7 @@ export default function Home() {
 
                   {/* Actions */}
                   <div className="no-print" style={{ display: "flex", flexDirection: isMobile ? "column" : "row", gap: 16 }}>
-                    <button onClick={() => { setResult(null); setActiveStep(1); setPhotos([]); }}
+                    <button onClick={() => { setResult(null); setActiveStep(1); setPhotos([]); setVisualResult(""); }}
                       style={{ flex: 1, padding: "18px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 16, color: "#fff", fontSize: 15, fontWeight: 700, cursor: "pointer" }}
                       onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.08)"}
                       onMouseLeave={e => e.currentTarget.style.background = "rgba(255,255,255,0.03)"}>
