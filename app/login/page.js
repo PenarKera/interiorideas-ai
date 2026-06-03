@@ -11,12 +11,12 @@ import {
 const ROTATING_WORDS = ["Living Room", "Bedroom", "Kitchen", "Home Office", "Dining Room", "Bathroom"];
 
 const FEATURES = [
-  { icon: "🛋️", title: "Smart Room Layouts", desc: "AI analyzes your space and generates optimized furniture arrangements for maximum comfort and flow." },
-  { icon: "🎨", title: "Color Psychology", desc: "Get scientifically-backed color palettes tailored to your room type, lighting, and personal style." },
-  { icon: "🪑", title: "Furniture Curation", desc: "Receive curated furniture recommendations with exact prices matched to your budget range." },
-  { icon: "💡", title: "Expert Pro Tips", desc: "Each design comes with professional interior designer insights to elevate your space." },
-  { icon: "📊", title: "Design Analytics", desc: "Track your design history, favorite styles, and most-designed rooms in your personal dashboard." },
-  { icon: "🖨️", title: "PDF Export", desc: "Export any design concept as a PDF to share with contractors, family, or save for later." },
+  { icon: "01", title: "Smart Room Layouts", desc: "AI analyzes your space and generates optimized furniture arrangements for maximum comfort and flow." },
+  { icon: "02", title: "Color Psychology", desc: "Get scientifically-backed color palettes tailored to your room type, lighting, and personal style." },
+  { icon: "03", title: "Furniture Curation", desc: "Receive curated furniture recommendations with exact prices matched to your budget range." },
+  { icon: "04", title: "Expert Pro Tips", desc: "Each design comes with professional interior designer insights to elevate your space." },
+  { icon: "05", title: "Design Analytics", desc: "Track your design history, favorite styles, and most-designed rooms in your personal dashboard." },
+  { icon: "06", title: "PDF Export", desc: "Export any design concept as a PDF to share with contractors, family, or save for later." },
 ];
 
 const TESTIMONIALS = [
@@ -216,7 +216,7 @@ export default function LoginPage() {
 
           {/* Feature pills */}
           <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-            {["🛋️ Layouts", "🎨 Palettes", "🪑 Furniture", "💡 Pro Tips", "📊 Analytics", "🖨️ PDF Export"].map(f => (
+            {["Layouts", "Palettes", "Furniture", "Pro Tips", "Analytics", "PDF Export"].map(f => (
               <div key={f} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 100, padding: "8px 16px", fontSize: 13, color: "#94A3B8" }}>{f}</div>
             ))}
           </div>
@@ -272,7 +272,7 @@ export default function LoginPage() {
             </div>
           </form>
 
-          {error && <div style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: 10, padding: "11px 14px", color: "#FCA5A5", fontSize: 13, marginTop: 14 }}>⚠ {error}</div>}
+          {error && <div style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: 10, padding: "11px 14px", color: "#FCA5A5", fontSize: 13, marginTop: 14 }}>{error}</div>}
           {success && <div style={{ background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.2)", borderRadius: 10, padding: "11px 14px", color: "#86EFAC", fontSize: 13, marginTop: 14 }}>{success}</div>}
           {authUnavailable && !error && <div style={{ background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.22)", borderRadius: 10, padding: "11px 14px", color: "#FCD34D", fontSize: 13, marginTop: 14 }}>{supabaseConfigError}</div>}
 
@@ -289,7 +289,6 @@ export default function LoginPage() {
           </p>
 
           <div style={{ marginTop: 28, paddingTop: 20, borderTop: "1px solid rgba(255,255,255,0.05)", display: "flex", justifyContent: "center", gap: 6, alignItems: "center" }}>
-            <span style={{ fontSize: 13 }}>🔒</span>
             <span style={{ fontSize: 12, color: "#334155" }}>Secured by Supabase Auth</span>
           </div>
         </div>
@@ -359,7 +358,7 @@ export default function LoginPage() {
           {TESTIMONIALS.map((t, i) => (
             <div key={i} className="card-hover" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 20, padding: "36px 32px" }}>
               <div style={{ display: "flex", gap: 2, marginBottom: 20 }}>
-                {[1,2,3,4,5].map(s => <span key={s} style={{ color: "#F59E0B", fontSize: 16 }}>★</span>)}
+                <span style={{ color: "#F59E0B", fontSize: 13, fontWeight: 800, letterSpacing: "1px" }}>5.0 RATING</span>
               </div>
               <p style={{ fontSize: 15, color: "#94A3B8", lineHeight: 1.75, marginBottom: 28, fontStyle: "italic" }}>&ldquo;{t.text}&rdquo;</p>
               <div style={{ display: "flex", alignItems: "center", gap: 14 }}>

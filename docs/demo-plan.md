@@ -9,7 +9,7 @@ InteriorIdeas.ai eshte nje aplikacion web qe perdor AI per te gjeneruar ide te p
 - personave qe duan ide te shpejta para renovimit
 - agjenteve ose profesionisteve qe duan koncepte vizuale me shpejt
 
-Vlera kryesore eshte se perdoruesi jep preferencat e tij dhe sistemi kthen nje koncept te plote: pershkrim, elemente kyce, mobilje me cmime, keshilla per ngjyra, foto inspiruese dhe mundesi ruajtjeje.
+Vlera kryesore eshte se perdoruesi jep preferencat e tij dhe sistemi kthen nje koncept te plote: pershkrim, elemente kyce, mobilje me cmime, keshilla per ngjyra, vizualizim te dhomes me AI dhe mundesi ruajtjeje.
 
 ## 2. Live URL
 
@@ -50,7 +50,7 @@ Ky eshte flow me i mire sepse tregon vleren e produktit nga fillimi deri ne fund
 - Tregoj titullin dhe pershkrimin e konceptit
 - Tregoj mobiljet e propozuara me cmime
 - Tregoj keshillat per ngjyra dhe pro tip
-- Tregoj fotografite inspiruese nga Unsplash
+- Tregoj vizualizimin e dhomes te gjeneruar me AI nga foto e ngarkuar
 - Theksoj qe perdoruesi merr nje ide konkrete, jo vetem tekst te pergjithshem
 
 ### Hapi 4 - Ruajtja dhe rihapja e dizajnit (rreth 1 minute)
@@ -73,7 +73,7 @@ Nuk do te hyj ne detaje te panevojshme. Do te shpjegoj vetem pjeset qe tregojne 
 2. Authentication: Supabase Auth per sign in, sign up, sign out dhe reset password.
 3. Database: Supabase ruan dizajnet e perdoruesit ne tabelen `designs`.
 4. AI generation: `app/api/generate/route.js` dergon preferencat e perdoruesit te Groq dhe pret JSON te strukturuar.
-5. Media inspiration: Unsplash perdoret per foto referuese sipas stilit dhe tipit te dhomes.
+5. Image generation: Pollinations perdoret per vizualizim/redizajnim te fotos se dhomes.
 6. Extra value: perdoruesi mund ta ruaje dizajnin, ta rihape dhe ta eksportoje si PDF.
 
 ## 5. Cfare do te them ne prezantim per vleren e projektit

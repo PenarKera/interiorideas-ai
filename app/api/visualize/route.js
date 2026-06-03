@@ -44,6 +44,39 @@ function getClientErrorMessage(status, geminiError) {
   return `Gemini failed (${status}): ${geminiError}`;
 }
 
+function getCleanProviderError(error) {
+  const rawMessage = error?.message || "Image generation failed.";
+
+  if (/negative dimension|Fireworks|Workflow encountered/i.test(rawMessage)) {
+    return "Pollinations/FLUX nuk e pranoi prompt-in. Provo nje prompt me te shkurter ose model tjeter.";
+  }
+
+  if (/quota|rate|limit/i.test(rawMessage)) {
+    return "Pollinations rate limit u arrit. Provo perseri pas pak.";
+  }
+
+  return rawMessage.length > 220
+    ? `${rawMessage.slice(0, 220)}...`
+    : rawMessage;
+}
+
+function buildPollinationsPrompt({ room, style, palette, prompt }) {
+  const shortPrompt = [
+    "Photorealistic interior design render.",
+    room ? `${room}.` : "",
+    style ? `${style} style.` : "",
+    palette ? `${palette} palette.` : "",
+    prompt ? `User request: ${prompt}.` : "",
+    "Keep realistic furniture, lighting, walls, windows, and proportions. No text, watermark, logo, or distorted geometry.",
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  return shortPrompt.slice(0, 900);
+}
+
 async function generateWithHuggingFace({ imageBuffer, imageType, prompt }) {
   const hfToken = process.env.HF_TOKEN || process.env.HUGGINGFACE_API_KEY;
 
@@ -180,19 +213,28 @@ export async function POST(req) {
 
     if (process.env.POLLINATIONS_API_KEY) {
       try {
-        const imageUrl = await generateWithPollinations({ prompt: imagePrompt });
+        const imageUrl = await generateWithPollinations({
+          prompt: buildPollinationsPrompt({ room, style, palette, prompt }),
+        });
 
         if (imageUrl) {
           return Response.json({ success: true, imageUrl });
         }
       } catch (pollinationsError) {
         console.error("Pollinations image generation error:", pollinationsError);
+        return Response.json(
+          {
+            success: false,
+            error: getCleanProviderError(pollinationsError),
+          },
+          { status: 500 }
+        );
       }
     }
 
     if (!geminiApiKey) {
       return Response.json(
-        { success: false, error: "Vendos HF_TOKEN ose GEMINI_API_KEY ne .env.local." },
+        { success: false, error: "Vendos POLLINATIONS_API_KEY ne .env.local per gjenerim fotoje." },
         { status: 500 }
       );
     }

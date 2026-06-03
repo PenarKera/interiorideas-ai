@@ -40,7 +40,7 @@ export default function Home() {
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileMessage, setProfileMessage] = useState("");
   const [profileError, setProfileError] = useState("");
-  const [visualForm, setVisualForm] = useState({ image: null, prompt: "", dimensions: "" });
+  const [visualForm, setVisualForm] = useState({ image: null, prompt: "" });
   const [visualPreview, setVisualPreview] = useState("");
   const [visualResult, setVisualResult] = useState("");
   const [visualLoading, setVisualLoading] = useState(false);
@@ -211,7 +211,6 @@ export default function Home() {
     if (visualResult) {
       designPayload.visual_render = visualResult;
       designPayload.visual_prompt = visualForm.prompt;
-      designPayload.visual_dimensions = visualForm.dimensions;
     }
 
     let { error } = await supabase.from("designs").insert(designPayload);
@@ -231,6 +230,19 @@ export default function Home() {
       console.error("Supabase Error:", error.message);
       setError("Failed to save design.");
     }
+  };
+
+  const startNewDesign = () => {
+    setActiveTab("design");
+    setResult(null);
+    setPhotos([]);
+    setVisualResult("");
+    setVisualPreview("");
+    setVisualForm({ image: null, prompt: "" });
+    setVisualError("");
+    setError("");
+    setSavedMsg(false);
+    setActiveStep(1);
   };
 
   const handleDeleteDesign = async (id) => {
@@ -276,7 +288,6 @@ export default function Home() {
       const body = new FormData();
       body.append("image", visualForm.image);
       body.append("prompt", visualForm.prompt);
-      body.append("dimensions", visualForm.dimensions);
       body.append("room", form.room);
       body.append("style", form.style);
       body.append("palette", form.palette);
@@ -311,7 +322,6 @@ export default function Home() {
     setVisualForm({
       image: null,
       prompt: design.visual_prompt || "",
-      dimensions: design.visual_dimensions || "",
     });
     setActiveTab("design");
     setActiveStep(2);
@@ -520,7 +530,7 @@ export default function Home() {
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
             {activeTab !== "design" && (
-              <button onClick={() => setActiveTab("design")}
+              <button onClick={startNewDesign}
                 style={{ padding: isMobile ? "10px 14px" : "10px 20px", background: "linear-gradient(135deg, #3B82F6, #6366F1)", border: "none", borderRadius: 10, color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
                 ✦ Start Designing
               </button>
@@ -584,7 +594,7 @@ export default function Home() {
                   <div style={{ fontSize: 48, marginBottom: 20, opacity: 0.5 }}>📊</div>
                   <div style={{ fontSize: 20, fontWeight: 700, color: "#fff", marginBottom: 10 }}>No data yet</div>
                   <div style={{ fontSize: 15, color: "#475569", marginBottom: 30 }}>Generate and save designs to see analytics.</div>
-                  <button onClick={() => setActiveTab("design")} style={{ padding: "14px 28px", background: "linear-gradient(135deg, #3B82F6, #6366F1)", border: "none", borderRadius: 12, color: "#fff", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>Enter Studio →</button>
+                  <button onClick={startNewDesign} style={{ padding: "14px 28px", background: "linear-gradient(135deg, #3B82F6, #6366F1)", border: "none", borderRadius: 12, color: "#fff", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>Enter Studio →</button>
                 </div>
               )}
             </div>
@@ -616,7 +626,7 @@ export default function Home() {
                   <div style={{ fontSize: 48, marginBottom: 20, opacity: 0.5 }}>{searchQuery ? "🔍" : "🖼️"}</div>
                   <div style={{ fontSize: 20, fontWeight: 700, color: "#fff", marginBottom: 10 }}>{searchQuery ? "No results" : "Empty Gallery"}</div>
                   <div style={{ fontSize: 15, color: "#475569", marginBottom: 30 }}>{searchQuery ? `No designs match "${searchQuery}"` : "Create your first design to populate the gallery."}</div>
-                  {!searchQuery && <button onClick={() => setActiveTab("design")} style={{ padding: "14px 28px", background: "linear-gradient(135deg, #3B82F6, #6366F1)", border: "none", borderRadius: 12, color: "#fff", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>Enter Studio →</button>}
+                  {!searchQuery && <button onClick={startNewDesign} style={{ padding: "14px 28px", background: "linear-gradient(135deg, #3B82F6, #6366F1)", border: "none", borderRadius: 12, color: "#fff", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>Enter Studio →</button>}
                 </div>
               ) : (
                 <div style={{ display: "grid", gap: 16 }}>
@@ -726,7 +736,7 @@ export default function Home() {
                         <div style={{ fontSize: 13, color: "#64748B" }}>{latestDesign.room} · {latestDesign.style}</div>
                       </div>
                     ) : (
-                      <button onClick={() => setActiveTab("design")} style={{ width: "100%", padding: "14px 16px", borderRadius: 12, border: "1px solid rgba(59,130,246,0.24)", background: "rgba(59,130,246,0.08)", color: "#93C5FD", fontWeight: 800, cursor: "pointer" }}>Create first design</button>
+                      <button onClick={startNewDesign} style={{ width: "100%", padding: "14px 16px", borderRadius: 12, border: "1px solid rgba(59,130,246,0.24)", background: "rgba(59,130,246,0.08)", color: "#93C5FD", fontWeight: 800, cursor: "pointer" }}>Create first design</button>
                     )}
                   </div>
                 </div>
@@ -903,7 +913,7 @@ export default function Home() {
                     <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", justifyContent: "space-between", gap: 12, marginBottom: 18 }}>
                       <div>
                         <div style={{ fontSize: 12, fontWeight: 800, color: "#67E8F9", letterSpacing: "1px", textTransform: "uppercase", marginBottom: 6 }}>AI Room Visualizer</div>
-                        <div style={{ fontSize: 13, color: "#64748B", lineHeight: 1.5 }}>Upload your room photo, add dimensions and a prompt, then generate a realistic redesign image.</div>
+                        <div style={{ fontSize: 13, color: "#64748B", lineHeight: 1.5 }}>Upload your room photo, add a short prompt, then generate a realistic redesign image.</div>
                       </div>
                       <div style={{ alignSelf: isMobile ? "flex-start" : "center", background: "rgba(6,182,212,0.08)", border: "1px solid rgba(6,182,212,0.2)", borderRadius: 999, padding: "6px 12px", color: "#67E8F9", fontSize: 11, fontWeight: 800 }}>IMAGE AI</div>
                     </div>
@@ -931,16 +941,6 @@ export default function Home() {
                       </div>
 
                       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                        <div>
-                          <label style={{ fontSize: 12, fontWeight: 700, color: "#64748B", letterSpacing: "1px", textTransform: "uppercase", display: "block", marginBottom: 10 }}>Dimensions</label>
-                          <input
-                            value={visualForm.dimensions}
-                            onChange={e => setVisualForm({ ...visualForm, dimensions: e.target.value })}
-                            disabled={visualLoading}
-                            placeholder="Example: 4m x 5m, ceiling 2.7m"
-                            style={{ width: "100%", background: "#0D121F", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, padding: "14px 16px", color: "#fff", fontSize: 14, outline: "none", boxSizing: "border-box" }}
-                          />
-                        </div>
                         <div>
                           <label style={{ fontSize: 12, fontWeight: 700, color: "#64748B", letterSpacing: "1px", textTransform: "uppercase", display: "block", marginBottom: 10 }}>Image Prompt</label>
                           <textarea
@@ -974,6 +974,9 @@ export default function Home() {
                       <div style={{ marginTop: 22 }}>
                         <div style={{ fontSize: 12, fontWeight: 700, color: "#fff", letterSpacing: "1px", textTransform: "uppercase", marginBottom: 12 }}>Generated Room Render</div>
                         <img src={visualResult} alt="AI generated room render" style={{ width: "100%", borderRadius: 16, border: "1px solid rgba(255,255,255,0.08)", display: "block" }} />
+                        <div style={{ marginTop: 12, background: "rgba(6,182,212,0.06)", border: "1px solid rgba(6,182,212,0.16)", borderRadius: 12, padding: "12px 14px", color: "#67E8F9", fontSize: 13, lineHeight: 1.5 }}>
+                          Room size estimate appears in the final design concept after generating the full plan.
+                        </div>
                       </div>
                     )}
                   </div>
@@ -1248,7 +1251,7 @@ export default function Home() {
 
                   {/* Actions */}
                   <div className="no-print" style={{ display: "flex", flexDirection: isMobile ? "column" : "row", gap: 16 }}>
-                    <button onClick={() => { setResult(null); setActiveStep(1); setPhotos([]); setVisualResult(""); }}
+                    <button onClick={startNewDesign}
                       style={{ flex: 1, padding: "18px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 16, color: "#fff", fontSize: 15, fontWeight: 700, cursor: "pointer" }}
                       onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.08)"}
                       onMouseLeave={e => e.currentTarget.style.background = "rgba(255,255,255,0.03)"}>

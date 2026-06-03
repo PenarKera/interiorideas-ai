@@ -1,6 +1,6 @@
 # InteriorIdeas.ai
 
-AI-powered interior design studio built with Next.js, Supabase, Groq, and Gemini.
+AI-powered interior design studio built with Next.js, Supabase, Groq, and Pollinations.
 
 ## What this project does
 
@@ -38,9 +38,9 @@ npm install
 ```env
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-GROQ_API_KEY=your_groq_api_key
-GEMINI_API_KEY=your_gemini_api_key
-GEMINI_IMAGE_MODEL=gemini-2.5-flash-image
+NEXT_PUBLIC_GROQ_API_KEY=your_groq_api_key
+POLLINATIONS_API_KEY=your_pollinations_api_key
+POLLINATIONS_IMAGE_MODEL=flux
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ```
 
@@ -55,9 +55,9 @@ npm run dev
 ## Environment notes
 
 - `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are required for auth and database access.
-- `GROQ_API_KEY` is required for AI design generation.
-- `GEMINI_API_KEY` is required for image generation from uploaded room photos.
-- `GEMINI_IMAGE_MODEL` is optional and defaults to `gemini-2.5-flash-image`.
+- `NEXT_PUBLIC_GROQ_API_KEY` is required for AI design generation.
+- `POLLINATIONS_API_KEY` is used for image generation from uploaded room photos.
+- `POLLINATIONS_IMAGE_MODEL` is optional and defaults to `flux`.
 - `NEXT_PUBLIC_SITE_URL` is optional locally, but useful as a fallback base URL for auth redirects.
 
 ## Supabase setup
@@ -99,7 +99,7 @@ WITH CHECK (auth.uid() = user_id);
 - React 18
 - Supabase Auth + PostgreSQL
 - Groq API for design generation
-- Gemini image model for room photo redesigns
+- Pollinations image model for room photo redesigns
 
 ## Project structure
 
