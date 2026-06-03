@@ -234,7 +234,7 @@ export async function POST(req) {
 
     if (!geminiApiKey) {
       return Response.json(
-        { success: false, error: "Vendos POLLINATIONS_API_KEY ne .env.local per gjenerim fotoje." },
+        { success: false, error: "Vendos POLLINATIONS_API_KEY ne environment variables per gjenerim fotoje." },
         { status: 500 }
       );
     }
